@@ -1,2 +1,3 @@
 // @osiris/streaming - Redpanda/Kafka streaming package
-export {}
+export * from './consumer';
+export * from './producer';

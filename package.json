@@ -2,6 +2,7 @@
   "name": "osiris-redux",
   "version": "0.0.1",
   "private": true,
+  "packageManager": "npm@10.2.4",
   "description": "Planetary-scale geospatial intelligence platform",
   "workspaces": [
     "apps/*",

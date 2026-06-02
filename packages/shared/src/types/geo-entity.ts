@@ -22,6 +22,14 @@ export interface GeoEntity {
   lon: number;
   /** Unix timestamp of the entity's last update */
   timestamp: number;
+  /** Optional altitude in meters */
+  altitude?: number;
+  /** Optional velocity in km/h */
+  velocity?: number;
+  /** Optional heading in degrees (0-360) */
+  heading?: number;
+  /** Optional metadata */
+  metadata?: Record<string, any>;
 }
 
 /**

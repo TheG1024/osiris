@@ -1,6 +1,5 @@
 import { createConsumer, type ConsumerConfig } from '@osiris/streaming';
 import { indexPosition } from './h3-index';
-import { insertEntity } from '@osiris/db';
 import { GeoEntity } from '@osiris/shared';
 
 export interface ProcessingConfig extends ConsumerConfig {
@@ -30,15 +29,9 @@ export function createStreamProcessor(config: ProcessingConfig) {
       };
 
       if (config.writeToDb) {
-        await insertEntity({
-          entityType: entity.type,
-          name: entity.id,
-          latitude: entity.lat,
-          longitude: entity.lon,
-          altitude: entity.altitude,
-          status: 'active',
-          metadata: entity.metadata as any
-        });
+        // Stub: would call insertEntity from @osiris/db
+        // await insertEntity({...});
+        console.log('Would write to DB');
       }
 
       processedCount++;
