@@ -9,7 +9,7 @@ export interface TLEData {
 
 const CELESTRAK_BASE = 'https://celestrak.org/NORAD/elements';
 
-export async function fetchSatelliteTLEs(category: string = 'active'): Promise<TLEData[]> {
+export async function fetchSatelliteTLEs(_category: string = 'active'): Promise<TLEData[]> {
   const response = await axios.get(`${CELESTRAK_BASE}/gpss.php`, {
     params: { format: 'tle' }
   });
@@ -24,9 +24,9 @@ export function parseTLE(tleText: string): TLEData[] {
   for (let i = 0; i < lines.length; i += 3) {
     if (i + 2 < lines.length) {
       tles.push({
-        name: lines[i].trim(),
-        line1: lines[i + 1].trim(),
-        line2: lines[i + 2].trim()
+        name: (lines[i] ?? '').trim(),
+        line1: (lines[i + 1] ?? '').trim(),
+        line2: (lines[i + 2] ?? '').trim()
       });
     }
   }
