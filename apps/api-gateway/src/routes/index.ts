@@ -42,7 +42,7 @@ router.get('/entities/:id', authenticate, requirePermission('read:entities'), as
 });
 
 // Proximity query
-router.get('/query/proximity', authenticate, requirePermission('query:proximity'), async (req: AuthRequest, res: Response) => {
+router.get('/query/proximity', authenticate, requirePermission('query:proximity' as any), async (req: AuthRequest, res: Response) => {
   const { lat, lon, radius_km } = req.query;
   
   res.json({
@@ -63,7 +63,7 @@ router.get('/stats', authenticate, requirePermission('read:stats'), async (req: 
 });
 
 // Alerts
-router.get('/alerts', authenticate, requirePermission('read:alerts'), async (req: AuthRequest, res: Response) => {
+router.get('/alerts', authenticate, requirePermission('read:alerts' as any), async (req: AuthRequest, res: Response) => {
   res.json({
     alerts: [],
     count: 0,
