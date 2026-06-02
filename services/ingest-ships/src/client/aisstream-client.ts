@@ -17,8 +17,7 @@ const AISSTREAM_WS_URL = 'wss://data.aisstream.io/v1/stream';
 export class AISStreamClient extends EventEmitter {
   private ws: WebSocket | null = null;
   private apiKey: string;
-  private connected: boolean = false;
-
+  private messageCount = 0;
   constructor(apiKey: string) {
     super();
     this.apiKey = apiKey;
@@ -30,7 +29,7 @@ export class AISStreamClient extends EventEmitter {
       
       this.ws.onopen = () => {
         console.log('Connected to AISStream');
-        this.connected = true;
+        // Connected
         this.startSubscription();
         resolve();
       };
@@ -49,7 +48,7 @@ export class AISStreamClient extends EventEmitter {
 
       this.ws.onclose = () => {
         console.log('AISStream connection closed');
-        this.connected = false;
+        // Disconnected
       };
     });
   }
@@ -68,7 +67,7 @@ export class AISStreamClient extends EventEmitter {
 
   disconnect(): void {
     this.ws?.close();
-    this.connected = false;
+    // Disconnected
   }
 }
 
@@ -79,7 +78,7 @@ function aisMessageToEntity(msg: AISMessage): GeoEntity {
     lat: msg.Latitude ?? 0,
     lon: msg.Longitude ?? 0,
     timestamp: msg.Timestamp,
-    velocity: msg.SOG,
+    velocity: msg.SOG ?? 0,
     heading: msg.Heading ?? msg.COG,
     metadata: {
       mmsi: msg.MMSI,
