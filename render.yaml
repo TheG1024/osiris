@@ -1,18 +1,14 @@
-render/services
-├── api-gateway (Web Service)
-├── ai-engine (Web Service)
-└── database (PostgreSQL with TimescaleDB)
+# Render Blueprint for Osiris Redux
+# Deploy at: https://render.com/select-repo
 
-render.yaml (Blueprint for one-click deploy):
-```yaml
 services:
-  # PostgreSQL with TimescaleDB
+  # PostgreSQL with TimescaleDB extension
   - type: pserv
     name: osiris-db
     databaseUrl: ${DATABASE_URL}
     ipAllowList: []
     
-  # API Gateway
+  # API Gateway (Express + WebSocket)
   - type: web
     name: osiris-api
     env: docker
@@ -29,7 +25,7 @@ services:
       - key: REDPANDA_BROKERS
         sync: false
     
-  # AI Engine
+  # AI Engine (Python FastAPI)
   - type: web
     name: osiris-ai
     env: docker
@@ -47,4 +43,3 @@ databases:
     databaseName: osiris
     user: osiris
     initSqlPath: ./infra/init-db.sql
-```
