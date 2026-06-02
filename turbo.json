@@ -20,6 +20,12 @@
     },
     "clean": {
       "cache": false
+    },
+    "build#skip-types": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["TSC_SKIP_TYPES"]
     }
-  }
+  },
+  "globalEnv": ["TSC_SKIP_TYPES"]
 }
