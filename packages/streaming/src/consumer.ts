@@ -54,7 +54,7 @@ export class ConsumerWrapper {
           await handler(payload);
         } catch (error) {
           console.error('Error processing message:', error);
-          throw error; // kafkajs will retry
+          throw error;
         }
       },
     });
@@ -73,6 +73,7 @@ export class ConsumerWrapper {
  */
 export interface ProducerConfig {
   brokers: string[];
+  clientId?: string;
 }
 
 /**
@@ -84,7 +85,7 @@ export class ProducerWrapper {
 
   constructor(config: ProducerConfig) {
     this.kafka = new Kafka({
-      clientId: 'osiris-streaming',
+      clientId: config.clientId ?? 'osiris-streaming',
       brokers: config.brokers,
     });
     this.producer = this.kafka.producer();
@@ -95,7 +96,20 @@ export class ProducerWrapper {
    */
   async connect(): Promise<void> {
     await this.producer.connect();
-    console.log(`Producer connected to ${this.producer}`);
+    console.log('Producer connected');
+  }
+
+  /**
+   * Send a message to a topic (backwards compatible API)
+   */
+  async produce(args: { topic: string; key?: string; value: string; partition?: number }): Promise<void> {
+    const msg: any = {
+      topic: args.topic,
+      messages: [{ value: args.value }] as any,
+    };
+    if (args.key) msg.messages[0].key = args.key;
+    if (typeof args.partition === 'number') msg.messages[0].partition = args.partition;
+    await this.producer.send(msg);
   }
 
   /**
@@ -118,22 +132,6 @@ export class ProducerWrapper {
   }
 
   /**
-   * Send multiple messages to a topic
-   */
-  async sendBatch(
-    topic: string,
-    messages: Array<{ key: string; value: Record<string, unknown> }>
-  ): Promise<void> {
-    await this.producer.send({
-      topic,
-      messages: messages.map((m) => ({
-        key: m.key,
-        value: JSON.stringify(m.value),
-      })),
-    });
-  }
-
-  /**
    * Disconnect from Kafka
    */
   async disconnect(): Promise<void> {
@@ -152,5 +150,7 @@ export function createConsumer(config: ConsumerConfig): ConsumerWrapper {
  * Factory function to create a producer
  */
 export function createProducer(config: { brokers: string }): ProducerWrapper {
-  return new ProducerWrapper(config);
+  // Accept string for backwards compatibility, split by comma
+  const brokers = config.brokers.split(',').map(b => b.trim());
+  return new ProducerWrapper({ brokers });
 }
