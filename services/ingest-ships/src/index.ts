@@ -1,4 +1,5 @@
-export { AisStreamClient as AISStreamClient } from './client/aisstream-client';
+import { AisStreamClient } from './client/aisstream-client';
+import { GeoEntity } from '@osiris/shared';
 import { createShipsPublisher } from './publisher';
 import { TOPICS } from '@osiris/shared';
 
@@ -16,7 +17,7 @@ async function main() {
     topic: TOPICS.INGEST_SHIPS
   });
 
-  const client = new AISStreamClient(apiKey);
+  const client = new AisStreamClient(/* apiKey */);
 
   let shuttingDown = false;
 
@@ -36,7 +37,7 @@ async function main() {
     await client.connect();
     console.log('Listening for AIS messages...');
 
-    client.on('message', async (entity) => {
+    client.on('message', async (entity: GeoEntity) => {
       await publisher.publish([entity]);
     });
 
