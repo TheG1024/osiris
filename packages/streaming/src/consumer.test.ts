@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // We'll test ConsumerWrapper by checking it calls the right methods
 // The actual KafkaConsumer will fail (needs broker), so we just verify the wrapper structure
