@@ -9,7 +9,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "confluent-kafka": "^2.8.0"
+    "@confluentinc/kafka-javascript": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
