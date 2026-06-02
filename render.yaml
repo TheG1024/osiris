@@ -1,0 +1,50 @@
+render/services
+├── api-gateway (Web Service)
+├── ai-engine (Web Service)
+└── database (PostgreSQL with TimescaleDB)
+
+render.yaml (Blueprint for one-click deploy):
+```yaml
+services:
+  # PostgreSQL with TimescaleDB
+  - type: pserv
+    name: osiris-db
+    databaseUrl: ${DATABASE_URL}
+    ipAllowList: []
+    
+  # API Gateway
+  - type: web
+    name: osiris-api
+    env: docker
+    region: oregon
+    plan: starter
+    dockerfilePath: ./Dockerfile.api
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: osiris-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: REDPANDA_BROKERS
+        sync: false
+    
+  # AI Engine
+  - type: web
+    name: osiris-ai
+    env: docker
+    region: oregon
+    plan: starter
+    dockerContext: ./services/ai-engine
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: osiris-db
+          property: connectionString
+
+databases:
+  - name: osiris-db
+    databaseName: osiris
+    user: osiris
+    initSqlPath: ./infra/init-db.sql
+```
