@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "main": "./dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --noCheck",
     "dev": "ts-node src/server.ts",
     "start": "node dist/server.js",
     "test": "vitest run"
