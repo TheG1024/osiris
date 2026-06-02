@@ -1,4 +1,4 @@
-import { createProducer, type ProducerConfig } from '@osiris/streaming';
+import { createProducer } from '@osiris/streaming';
 import { GeoEntity } from '@osiris/shared';
 
 export interface PublisherConfig {
