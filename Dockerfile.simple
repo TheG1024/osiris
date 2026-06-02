@@ -1,0 +1,33 @@
+# Simple deployment without native Kafka module
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install build tools needed for native modules
+RUN apk add --no-cache python3 make g++
+
+# Copy root package files
+COPY package*.json ./
+COPY packages/shared/package*.json ./packages/shared/
+
+# Install root dependencies first (includes turbo)
+RUN npm install --legacy-peer-deps
+
+# Build shared package only (no native dependencies)
+WORKDIR /app/packages/shared
+COPY packages/shared/ ./
+RUN npm run build
+
+# Build API gateway
+WORKDIR /app/apps/api-gateway
+COPY apps/api-gateway/package*.json ./
+RUN npm install --legacy-peer-deps
+COPY apps/api-gateway/ ./
+RUN npm run build
+
+# Expose port
+EXPOSE 4000
+
+# Start the API server
+WORKDIR /app/apps/api-gateway
+CMD ["node", "dist/server.js"]

@@ -1,0 +1,6 @@
+custom:
+  deploys:
+    - type: web
+      name: osiris-api-simple
+      env: docker
+      dockerfilePath: Dockerfile.simple
