@@ -1,4 +1,4 @@
-import { AISStreamClient } from './client/aisstream-client';
+export { AisStreamClient as AISStreamClient } from './client/aisstream-client';
 import { createShipsPublisher } from './publisher';
 import { TOPICS } from '@osiris/shared';
 

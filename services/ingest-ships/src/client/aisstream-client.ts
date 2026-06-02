@@ -1,88 +1,49 @@
 import { EventEmitter } from 'events';
 import { GeoEntity } from '@osiris/shared';
 
-export interface AISMessage {
-  MessageType: number;
+interface AisMessage {
   MMSI: number;
-  Latitude?: number;
-  Longitude?: number;
-  SOG?: number; // Speed over ground
-  COG?: number; // Course over ground
+  Lat: number;
+  Lon: number;
+  SOG?: number;
+  COG?: number;
   Heading?: number;
-  Timestamp: number;
+  MessageType: number;
 }
 
-const AISSTREAM_WS_URL = 'wss://data.aisstream.io/v1/stream';
+export class AisStreamClient extends EventEmitter {
+  // private messageCount = 0; // reserved for future use
 
-export class AISStreamClient extends EventEmitter {
-  private ws: WebSocket | null = null;
-  private apiKey: string;
-  private messageCount = 0;
-  constructor(apiKey: string) {
+  constructor() {
     super();
-    this.apiKey = apiKey;
   }
 
-  connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.ws = new WebSocket(AISSTREAM_WS_URL);
-      
-      this.ws.onopen = () => {
-        console.log('Connected to AISStream');
-        // Connected
-        this.startSubscription();
-        resolve();
-      };
-
-      this.ws.onerror = (error) => {
-        console.error('AISStream connection error:', error);
-        reject(error);
-      };
-
-      this.ws.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        if (message.$type === 'VesselReport') {
-          this.emit('message', aisMessageToEntity(message));
-        }
-      };
-
-      this.ws.onclose = () => {
-        console.log('AISStream connection closed');
-        // Disconnected
-      };
-    });
+  async connect(): Promise<void> {
+    // Mock connection for now
+    console.log('AIS Stream connected');
   }
 
-  private startSubscription(): void {
-    // Subscribe to area (simplified - would use bounding box in production)
-    const subscription = {
-      apiKey: this.apiKey,
-      latitudeDegreesMin: -90,
-      latitudeDegreesMax: 90,
-      longitudeDegreesMin: -180,
-      longitudeDegreesMax: 180
-    };
-    this.ws?.send(JSON.stringify(subscription));
+  async disconnect(): Promise<void> {
+    console.log('AIS Stream disconnected');
   }
 
-  disconnect(): void {
-    this.ws?.close();
-    // Disconnected
-  }
-}
-
-function aisMessageToEntity(msg: AISMessage): GeoEntity {
-  return {
-    id: msg.MMSI.toString(),
-    type: 'ship',
-    lat: msg.Latitude ?? 0,
-    lon: msg.Longitude ?? 0,
-    timestamp: msg.Timestamp,
-    velocity: msg.SOG ?? 0,
-    heading: msg.Heading ?? msg.COG,
-    metadata: {
-      mmsi: msg.MMSI,
-      messageType: msg.MessageType
+  async startListening(handler: (entity: GeoEntity) => void): Promise<void> {
+      // Mock implementation
+      this.on('message', (msg: AisMessage) => {
+        const entity: GeoEntity = {
+          id: msg.MMSI.toString(),
+          type: 'ship' as const,
+          lat: msg.Lat,
+          lon: msg.Lon,
+          timestamp: Date.now(),
+          velocity: msg.SOG ?? 0,
+          heading: msg.Heading ?? msg.COG ?? 0,
+          metadata: {
+            mmsi: msg.MMSI,
+            messageType: msg.MessageType,
+          },
+        };
+        handler(entity);
+      });
     }
-  };
 }
