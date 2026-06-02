@@ -1,0 +1,81 @@
+services:
+  # PostgreSQL with TimescaleDB extension for time-series data
+  postgres:
+    image: timescale/timescaledb-ha:pg16
+    environment:
+      POSTGRES_DB: osiris
+      POSTGRES_USER: osiris
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-osiris_dev}
+    volumes:
+      - pgdata:/home/postgres/pgdata/data
+      - ./infra/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U osiris -d osiris"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Neo4j for graph relationships
+  neo4j:
+    image: neo4j:5.15-community
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-osiris_dev}
+      NEO4J_PLUGINS: '["graph-data-science"]'
+    volumes:
+      - neo4j-data:/data
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+
+  # Redpanda for event streaming (Kafka-compatible)
+  redpanda:
+    image: redpandadata/redpanda:v23.3.10
+    command:
+      - redpanda
+      - start
+      - --kafka-addr=INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:19092
+      - --advertise-kafka-addr=INTERNAL://redpanda:9092,EXTERNAL://localhost:19092
+      - --smp=1
+      - --memory=1G
+      - --overprovisioned
+      - --node-id=0
+      - --check=false
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+
+  # API Gateway (Express + WebSocket)
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgresql://osiris:${DATABASE_PASSWORD:-osiris_dev}@postgres:5432/osiris
+      REDPANDA_BROKERS: redpanda:9092
+      JWT_SECRET: ${JWT_SECRET:-change-in-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_started
+
+  # AI Engine (Python FastAPI)
+  ai-engine:
+    build:
+      context: ./services/ai-engine
+      dockerfile: Dockerfile.python
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://osiris:${DATABASE_PASSWORD:-osiris_dev}@postgres:5432/osiris
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
+  neo4j-data:
+  redpanda-data:
