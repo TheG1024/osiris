@@ -1,0 +1,91 @@
+version: '3.9'
+
+services:
+  # TimescaleDB with PostGIS for time-series + spatial data
+  timescaledb:
+    image: timescale/timescaledb-ha:pg16
+    container_name: osiris-timescaledb
+    environment:
+      POSTGRES_DB: osiris
+      POSTGRES_USER: osiris
+      POSTGRES_PASSWORD: osiris_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale_data:/home/postgres/pgdata/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U osiris -d osiris"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Neo4j for graph relationships
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: osiris-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/osiris_dev
+      NEO4J_PLUGINS: '["graph-data-science"]'
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redpanda (Kafka-compatible streaming)
+  redpanda:
+    image: redpandadata/redpanda:v23.3.10
+    container_name: osiris-redpanda
+    command:
+      - redpanda
+      - start
+      - --kafka-addr=INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:19092
+      - --advertise-kafka-addr=INTERNAL://redpanda:9092,EXTERNAL://localhost:19092
+      - --smp=1
+      - --memory=1G
+      - --reserve-memory=0M
+      - --overprovisioned
+      - --node-id=0
+      - --check=false
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # MinIO for object storage
+  minio:
+    image: minio/minio:latest
+    container_name: osiris-minio
+    environment:
+      MINIO_ROOT_USER: osiris_dev
+      MINIO_ROOT_PASSWORD: osiris_dev_secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  timescale_data:
+  neo4j_data:
+  minio_data:
