@@ -1,4 +1,4 @@
-import { Pool, type QueryResult } from 'pg';
+import { Pool } from 'pg';
 
 /**
  * Entity interface representing a database entity record
@@ -155,12 +155,12 @@ function rowToEntity(row: Record<string, unknown>): Entity {
     id: row.id as string,
     entityType: row.entity_type as string,
     name: row.name as string,
-    description: row.description as string | undefined,
+    description: row.description as string ?? undefined,
     latitude: row.latitude as number,
     longitude: row.longitude as number,
-    altitude: row.altitude as number | undefined,
+    altitude: row.altitude as number ?? undefined,
     status: row.status as string,
-    metadata: row.metadata as Record<string, unknown> | undefined,
+    metadata: row.metadata as Record<string, unknown> ?? undefined,
     createdAt: row.created_at as Date,
     updatedAt: row.updated_at as Date,
   };

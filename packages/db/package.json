@@ -9,6 +9,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@osiris/shared": "^0.1.0",
     "pg": "^8.11.0"
   },
   "devDependencies": {
