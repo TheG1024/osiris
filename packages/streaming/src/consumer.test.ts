@@ -1,52 +1,72 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { createConsumer, ConsumerWrapper, createProducer, ProducerWrapper } from './consumer';
 
-// We'll test ConsumerWrapper by checking it calls the right methods
-// The actual KafkaConsumer will fail (needs broker), so we just verify the wrapper structure
+describe('ConsumerWrapper', () => {
+  let consumer: ConsumerWrapper;
 
-describe('ConsumerWrapper structure', () => {
-  it('ConsumerWrapper class exists', async () => {
-    const { ConsumerWrapper } = await import('./consumer');
-    expect(ConsumerWrapper).toBeDefined();
-    expect(typeof ConsumerWrapper).toBe('function');
+  beforeEach(() => {
+    consumer = createConsumer({
+      brokers: ['localhost:9092'],
+      groupId: 'test-group',
+      topics: ['test-topic'],
+      fromBeginning: true,
+    });
   });
 
-  it('createConsumer function exists', async () => {
-    const { createConsumer } = await import('./consumer');
-    expect(createConsumer).toBeDefined();
-    expect(typeof createConsumer).toBe('function');
+  afterEach(async () => {
+    await consumer.disconnect();
   });
 
-  it('ConsumerConfig interface is exported (type check via compile)', () => {
-    // This test just verifies types compile - actual runtime test below
-    expect(true).toBe(true);
+  it('should create a consumer with correct config', () => {
+    expect(consumer).toBeInstanceOf(ConsumerWrapper);
   });
 
-  it('wrapper has subscribe method signature', async () => {
-    const { ConsumerWrapper } = await import('./consumer');
-    // Check the prototype has subscribe method (will fail when called without real Kafka)
-    expect(ConsumerWrapper.prototype.subscribe).toBeDefined();
-    expect(typeof ConsumerWrapper.prototype.subscribe).toBe('function');
+  it('should connect to Kafka and subscribe to topics', async () => {
+    await consumer.connect();
+    // Connection should not throw
   });
 
-  it('wrapper has run method signature', async () => {
-    const { ConsumerWrapper } = await import('./consumer');
-    expect(ConsumerWrapper.prototype.run).toBeDefined();
-    expect(typeof ConsumerWrapper.prototype.run).toBe('function');
+  it('should disconnect from Kafka', async () => {
+    await consumer.connect();
+    await consumer.disconnect();
+    // Should not throw
   });
 });
 
-describe('createConsumer integration (will fail without broker)', () => {
-  it('createConsumer attempts to create consumer (expected to fail without broker)', async () => {
-    const { createConsumer } = await import('./consumer');
-    
-    // This WILL fail because there's no real Kafka broker
-    // The test verifies the error is from librdkafka, not from our code
-    expect(() => {
-      createConsumer({
-        brokers: 'localhost:9092',
-        groupId: 'test',
-        topics: ['test']
-      });
-    }).toThrow(); // Expected to throw because no broker
+describe('ProducerWrapper', () => {
+  let producer: ProducerWrapper;
+
+  beforeEach(() => {
+    producer = createProducer({
+      brokers: ['localhost:9092'],
+    });
+  });
+
+  afterEach(async () => {
+    await producer.disconnect();
+  });
+
+  it('should create a producer', () => {
+    expect(producer).toBeInstanceOf(ProducerWrapper);
+  });
+
+  it('should connect to Kafka', async () => {
+    await producer.connect();
+    // Should not throw
+  });
+
+  it('should send a message', async () => {
+    await producer.connect();
+    await producer.send('test-topic', 'key', { data: 'value' });
+    // Should not throw
+  });
+
+  it('should send batch messages', async () => {
+    await producer.connect();
+    await producer.sendBatch('test-topic', [
+      { key: 'key1', value: { data: 'value1' } },
+      { key: 'key2', value: { data: 'value2' } },
+    ]);
+    // Should not throw
   });
 });
