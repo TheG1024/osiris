@@ -75,6 +75,10 @@ export class ProducerWrapper {
   }
 }
 
+
+// Alias for backwards compatibility
+export const Producer = createProducer;
+
 export function createProducer(config: ProducerConfig): ProducerWrapper {
   return new ProducerWrapper(config);
 }

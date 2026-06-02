@@ -151,6 +151,6 @@ export function createConsumer(config: ConsumerConfig): ConsumerWrapper {
 /**
  * Factory function to create a producer
  */
-export function createProducer(config: ProducerConfig): ProducerWrapper {
+export function createProducer(config: { brokers: string }): ProducerWrapper {
   return new ProducerWrapper(config);
 }
