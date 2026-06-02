@@ -48,7 +48,7 @@ export function requirePermission(permission: Permission) {
     }
 
     const rolePermissions = PERMISSIONS[req.userRole];
-    if (!rolePermissions.has(permission)) {
+    if (!rolePermissions.includes(permission)) {
       return res.status(403).json({ error: `Missing permission: ${permission}` });
     }
 
