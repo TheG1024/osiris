@@ -1,21 +1,22 @@
-     1|{
-     2|  "name": "@osiris/processing",
-     3|  "version": "0.1.0",
-     4|  "main": "./dist/index.js",
-     5|  "scripts": {
-     6|    "build": "tsc",
-     7|    "dev": "tsc -w",
-     8|    "test": "vitest run"
-     9|  },
-    10|  "dependencies": {
-    11|    "@osiris/shared": "file:../../packages/shared",
-    12|    "@osiris/streaming": "file:../../packages/streaming",
-    13|    "@osiris/db": "file:../../packages/db",
-    14|    "h3-js": "^4.1.0"
-    15|  },
-    16|  "devDependencies": {
-    17|    "@types/node": "^20.0.0",
-    18|    "typescript": "^5.3.0",
-    19|    "vitest": "^1.0.0"
-    20|  }
-    21|}
+{
+  "name": "@osiris/processing",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@osiris/shared": "file:../../packages/shared",
+    "@osiris/streaming": "file:../../packages/streaming",
+    "@osiris/db": "file:../../packages/db",
+    "h3-js": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}
