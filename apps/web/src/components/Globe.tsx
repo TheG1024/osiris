@@ -9,11 +9,15 @@ export default function Globe() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Initialize Cesium viewer
+    // Initialize Cesium viewer (Cesium >=1.104 uses baseLayer + ImageryLayer)
     const viewer = new Cesium.Viewer(containerRef.current, {
-      imageryProvider: new Cesium.OpenStreetMapImageryProvider({
-        url: 'https://tile.openstreetmap.org/'
-      }),
+      baseLayer: Cesium.ImageryLayer.fromProviderAsync(
+        Promise.resolve(
+          new Cesium.OpenStreetMapImageryProvider({
+            url: 'https://tile.openstreetmap.org/'
+          })
+        )
+      ),
       baseLayerPicker: false,
       geocoder: false,
       homeButton: false,
@@ -21,7 +25,7 @@ export default function Globe() {
       timeline: false,
       animation: false,
       navigationHelpButton: false
-    });
+    } as unknown as Cesium.Viewer.ConstructorOptions);
 
     viewerRef.current = viewer;
 

@@ -44,7 +44,14 @@ export function createStreamProcessor(config: ProcessingConfig) {
     }
   };
 
-  consumer.run({ data: handler });
+  // Start the consumer loop in the background; errors are caught and logged
+  // inside the handler so the run() promise resolves immediately.
+  consumer.consume(async (payload) => {
+    const message: any = payload.message;
+    await handler(message);
+  }).catch((err) => {
+    console.error('Consumer loop failed:', err);
+  });
 
   return {
     getStats() {
@@ -52,7 +59,11 @@ export function createStreamProcessor(config: ProcessingConfig) {
     },
     async shutdown() {
       console.log(`Stream processor shutting down. Processed: ${processedCount}, Errors: ${errorCount}`);
-      // Would disconnect consumer here
+      try {
+        await consumer.disconnect();
+      } catch (err) {
+        console.error('Error disconnecting consumer:', err);
+      }
     }
   };
 }
