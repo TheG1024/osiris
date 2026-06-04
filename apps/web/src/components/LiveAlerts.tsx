@@ -151,7 +151,7 @@ const _LiveAlerts = memo(function LiveAlerts({
 
       {/* Alert List */}
       <div className={clsx("flex-1 overflow-y-auto", maxHeight)}>
-        <AnimatePresence mode="popWait">
+        <AnimatePresence mode="popLayout">
           {filteredAlerts.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-32 text-gray-500">
               <Shield size={32} className="mb-2 opacity-50" />

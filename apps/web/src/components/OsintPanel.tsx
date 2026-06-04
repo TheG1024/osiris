@@ -163,7 +163,7 @@ const _OsintPanel = memo(function OsintPanel({ onSelectResult }: OsintPanelProps
 
       {/* Results */}
       <div className="flex-1 overflow-y-auto">
-        <AnimatePresence mode="popWait">
+        <AnimatePresence mode="popLayout">
           {searchResults.length > 0 ? (
             searchResults.map((result) => (
               <motion.div

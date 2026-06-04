@@ -65,6 +65,7 @@ export default function Home() {
     alerts,
     entities,
     activeLayers,
+    viewState,
   } = useEntityStore();
 
   const [mouseCoords, setMouseCoords] = useState({ lat: 0, lng: 0 });
@@ -86,14 +87,21 @@ export default function Home() {
         // Fetch all data in parallel
         const data = await osirisApi.fetchAllData();
         
-        setEntities('aircraft', data.flights as any[]);
-        setEntities('ship', data.ships as any[]);
-        setEntities('satellite', data.satellites as any[]);
-        setEntities('event', [...data.fires, ...data.earthquakes] as any[]);
+        // Set entities from API response
+        const flights = Array.isArray(data.flights) ? data.flights : [];
+        const ships = Array.isArray(data.ships) ? data.ships : [];
+        const satellites = Array.isArray(data.satellites) ? data.satellites : [];
+        const fires = Array.isArray(data.fires) ? data.fires : [];
+        const earthquakes = Array.isArray(data.earthquakes) ? data.earthquakes : [];
+        
+        setEntities('aircraft', flights);
+        setEntities('ship', ships);
+        setEntities('satellite', satellites);
+        setEntities('event', [...fires, ...earthquakes]);
         
         // Convert to alerts
         const newAlerts = [
-          ...(data.fires as any[]).map((f: any) => ({
+          ...(fires.map((f: any) => ({
             id: `fire-${Date.now()}-${Math.random()}`,
             type: 'fire' as const,
             severity: 'high' as const,
@@ -102,8 +110,8 @@ export default function Home() {
             location: { lat: f.lat || 0, lon: f.lon || 0 },
             source: 'OSIRIS',
             timestamp: Date.now(),
-          })),
-          ...(data.earthquakes as any[]).map((e: any) => ({
+          }))),
+          ...(earthquakes.map((e: any) => ({
             id: `eq-${Date.now()}-${Math.random()}`,
             type: 'earthquake' as const,
             severity: 'medium' as const,
@@ -112,7 +120,7 @@ export default function Home() {
             location: { lat: e.lat || 0, lon: e.lon || 0 },
             source: 'USGS',
             timestamp: Date.now() - 3600000,
-          })),
+          }))),
         ];
         setAlerts(newAlerts);
         
@@ -336,7 +344,7 @@ export default function Home() {
         
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-gray-400">
-            <span className="font-mono">Z{entities.length}</span>
+            <span className="font-mono">Z{viewState.zoom.toFixed(1)}</span>
             <span>•</span>
             <span>EPSG:4326</span>
           </div>
