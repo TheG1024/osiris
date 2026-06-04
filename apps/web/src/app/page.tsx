@@ -1,3 +1,5 @@
+'use client';
+
 import dynamic from 'next/dynamic';
 import EntityDetail from '@/components/EntityDetail';
 import AlertsPanel from '@/components/AlertsPanel';
