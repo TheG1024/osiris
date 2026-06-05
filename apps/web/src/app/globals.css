@@ -1,0 +1,789 @@
+/* Osiris Redux — Tactical Operations UI */
+/* Premium dark theme with glassmorphism, glows, and tactical aesthetics */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Core Backgrounds */
+  --osiris-bg: #030712;
+  --osiris-bg-deep: #020409;
+  --osiris-surface: #0c0f1a;
+  --osiris-surface-elevated: #111827;
+  --osiris-panel: rgba(3, 7, 18, 0.92);
+  
+  /* Borders */
+  --osiris-border: rgba(0, 255, 136, 0.12);
+  --osiris-border-active: rgba(0, 255, 136, 0.5);
+  --osiris-border-glow: rgba(0, 255, 136, 0.25);
+  
+  /* Primary Accent — Tactical Green */
+  --osiris-accent: #00ff88;
+  --osiris-accent-dim: #00cc6a;
+  --osiris-accent-bright: #66ffaa;
+  --osiris-accent-glow: rgba(0, 255, 136, 0.2);
+  --osiris-accent-glow-strong: rgba(0, 255, 136, 0.4);
+  
+  /* Secondary Accents */
+  --osiris-amber: #fbbf24;
+  --osiris-amber-dim: #b45309;
+  --osiris-amber-glow: rgba(251, 191, 36, 0.25);
+  
+  /* Status Colors */
+  --osiris-success: #00ff88;
+  --osiris-warning: #f59e0b;
+  --osiris-danger: #ef4444;
+  --osiris-critical: #dc2626;
+  
+  /* Entity Colors */
+  --osiris-aircraft: #06b6d4;
+  --osiris-ship: #22d3ee;
+  --osiris-satellite: #f97316;
+  --osiris-weather: #a78bfa;
+  --osiris-camera: #f43f5e;
+  --osiris-fire: #ef4444;
+  --osiris-earthquake: #f97316;
+  
+  /* Text */
+  --osiris-text: #f5f5f4;
+  --osiris-text-dim: #a8a29e;
+  --osiris-text-muted: #78716c;
+  --osiris-text-faint: #57534e;
+  
+  /* Grid & Effects */
+  --osiris-grid: rgba(0, 255, 136, 0.03);
+  --osiris-grid-line: rgba(0, 255, 136, 0.06);
+  
+  /* Shadows */
+  --osiris-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+  --osiris-glow: 0 0 30px var(--osiris-accent-glow);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE STYLES
+   ═══════════════════════════════════════════════════════════════ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--osiris-bg);
+  color: var(--osiris-text);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TYPOGRAPHY
+   ═══════════════════════════════════════════════════════════════ */
+
+.font-display {
+  font-family: 'Orbitron', system-ui, sans-serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCROLLBAR — Tactical Green Theme
+   ═══════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--osiris-bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--osiris-border);
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--osiris-accent);
+  box-shadow: 0 0 10px var(--osiris-accent-glow);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GRID BACKGROUND — Subtle Tactical
+   ═══════════════════════════════════════════════════════════════ */
+
+.grid-tactical {
+  background-image: 
+    linear-gradient(var(--osiris-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--osiris-grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.grid-tactical-subtle {
+  background-image: 
+    linear-gradient(var(--osiris-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--osiris-grid) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLASSMORPHISM — Premium Panel Effects
+   ═══════════════════════════════════════════════════════════════ */
+
+.glass-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(12, 15, 26, 0.9) 0%,
+    rgba(3, 7, 18, 0.95) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--osiris-border);
+  box-shadow:
+    var(--osiris-shadow),
+    inset 0 1px 0 rgba(0, 255, 136, 0.05);
+}
+
+.glass-panel-active {
+  border-color: var(--osiris-border-active);
+  box-shadow:
+    var(--osiris-shadow),
+    var(--osiris-glow),
+    inset 0 1px 0 rgba(0, 255, 136, 0.1);
+}
+
+.glass-panel-hover:hover {
+  border-color: rgba(0, 255, 136, 0.25);
+  box-shadow:
+    var(--osiris-shadow),
+    0 0 20px var(--osiris-accent-glow);
+}
+
+/* Subtle inset glow on headers */
+.panel-header-accent {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 255, 136, 0.08) 0%,
+    transparent 100%
+  );
+  border-bottom: 1px solid var(--osiris-border);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STATUS INDICATORS
+   ═══════════════════════════════════════════════════════════════ */
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.online {
+  background: var(--osiris-success);
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.6);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.status-dot.offline {
+  background: var(--osiris-danger);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+}
+
+.status-dot.warning {
+  background: var(--osiris-warning);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.status-dot.syncing {
+  background: var(--osiris-accent);
+  animation: pulse-sync 1s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 255, 136, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(0, 255, 136, 0.7); }
+}
+
+@keyframes pulse-sync {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════════════════════════ */
+
+.btn-primary {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 204, 106, 0.15) 100%);
+  color: var(--osiris-accent);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(0, 255, 136, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.25) 0%, rgba(0, 204, 106, 0.25) 100%);
+  border-color: var(--osiris-accent);
+  box-shadow: 0 0 30px var(--osiris-accent-glow);
+  transform: translateY(-2px);
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 0 15px var(--osiris-accent-glow);
+}
+
+.btn-ghost {
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--osiris-text-muted);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  color: var(--osiris-text);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--osiris-border);
+}
+
+.btn-ghost.active {
+  color: var(--osiris-accent);
+  background: rgba(0, 255, 136, 0.1);
+  border-color: rgba(0, 255, 136, 0.2);
+}
+
+/* Icon Button */
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--osiris-text-muted);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  color: var(--osiris-text);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--osiris-border);
+}
+
+.btn-icon.active {
+  color: var(--osiris-accent);
+  background: rgba(0, 255, 136, 0.1);
+  border-color: rgba(0, 255, 136, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PANEL COMPONENTS
+   ═══════════════════════════════════════════════════════════════ */
+
+.panel-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--osiris-accent);
+}
+
+.panel-section-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--osiris-text-muted);
+}
+
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--osiris-text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: var(--osiris-accent);
+  border-radius: 0 2px 2px 0;
+  transition: height 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: var(--osiris-text);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tab-btn.active {
+  color: var(--osiris-accent);
+  background: rgba(0, 255, 136, 0.08);
+}
+
+.tab-btn.active::before {
+  height: 60%;
+  box-shadow: 0 0 10px var(--osiris-accent-glow);
+}
+
+.tab-btn.active svg {
+  color: var(--osiris-accent);
+  filter: drop-shadow(0 0 6px var(--osiris-accent-glow));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DATA DISPLAY
+   ═══════════════════════════════════════════════════════════════ */
+
+.data-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--osiris-text-muted);
+}
+
+.data-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--osiris-text);
+}
+
+.data-value.highlight {
+  color: var(--osiris-accent);
+}
+
+.data-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+/* Stat Card */
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--osiris-border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--osiris-border-active);
+  box-shadow: 0 0 20px var(--osiris-accent-glow);
+}
+
+.stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--osiris-text);
+  letter-spacing: -0.02em;
+}
+
+.stat-value.accent {
+  color: var(--osiris-accent);
+  text-shadow: 0 0 20px var(--osiris-accent-glow);
+}
+
+.stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--osiris-text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ENTITY BADGES
+   ═══════════════════════════════════════════════════════════════ */
+
+.entity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.entity-badge-aircraft {
+  background: rgba(6, 182, 212, 0.12);
+  color: var(--osiris-aircraft);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+.entity-badge-ship {
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--osiris-ship);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+}
+
+.entity-badge-satellite {
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--osiris-satellite);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+.entity-badge-weather {
+  background: rgba(167, 139, 250, 0.12);
+  color: var(--osiris-weather);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.entity-badge-camera {
+  background: rgba(244, 63, 94, 0.12);
+  color: var(--osiris-camera);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+.entity-badge-fire {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--osiris-fire);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.entity-badge-earthquake {
+  background: rgba(249, 115, 22, 0.15);
+  color: var(--osiris-earthquake);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+}
+
+/* Severity Badges */
+.severity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.severity-badge.critical {
+  background: rgba(220, 38, 38, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.severity-badge.high {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.25);
+}
+
+.severity-badge.medium {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.severity-badge.low {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes glow-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 10px var(--osiris-accent-glow);
+  }
+  50% { 
+    box-shadow: 0 0 30px var(--osiris-accent-glow-strong);
+  }
+}
+
+@keyframes radar-sweep {
+  0% { 
+    transform: rotate(0deg);
+    opacity: 0.8;
+  }
+  100% { 
+    transform: rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes scan-line {
+  0% { 
+    transform: translateY(-100%);
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% { 
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bounce-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.animate-radar {
+  animation: radar-sweep 4s linear infinite;
+}
+
+.animate-slide-in {
+  animation: slide-in-left 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOOLTIPS
+   ═══════════════════════════════════════════════════════════════ */
+
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  padding: 6px 10px;
+  background: var(--osiris-surface-elevated);
+  border: 1px solid var(--osiris-border);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--osiris-text);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HIDE CESIUM DEFAULT UI
+   ═══════════════════════════════════════════════════════════════ */
+
+.cesium-viewer-toolbar,
+.cesium-viewer-animationContainer,
+.cesium-viewer-timelineContainer,
+.cesium-viewer-fullscreenContainer,
+.cesium-viewer-bottom,
+.cesium-widget-credits {
+  display: none !important;
+}
+
+.cesium-viewer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAPLIBRE OVERRIDES
+   ═══════════════════════════════════════════════════════════════ */
+
+.maplibregl-ctrl-attrib {
+  display: none !important;
+}
+
+.maplibregl-ctrl-logo {
+  display: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════════════ */
+
+.text-gradient-accent {
+  background: linear-gradient(135deg, var(--osiris-accent) 0%, var(--osiris-accent-bright) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.border-glow {
+  box-shadow: 
+    0 0 0 1px var(--osiris-border-active),
+    0 0 20px var(--osiris-accent-glow);
+}
+
+.blur-backdrop {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Cursor states */
+.cursor-crosshair {
+  cursor: crosshair;
+}
+
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-grab:active {
+  cursor: grabbing;
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--osiris-accent);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

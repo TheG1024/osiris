@@ -169,7 +169,7 @@ class OsirisAPIClient {
   }
 
   async getShips(params?: Record<string, string>) {
-    return this.fetch('/api/v1/maritime', params);
+    return this.fetch('/api/v1/ships', params);
   }
 
   async getSatellites() {
