@@ -125,7 +125,7 @@ export default function OsirisMap({ onEntityClick, onMouseCoords }: OsirisMapPro
         onMove={handleMove}
         onMouseMove={handleMouseMove}
         reuseMaps
-        style={{ width: '100%', height: '100%' }}
+        style={{ position: 'absolute', inset: 0 }}
       >
         {/* Map Controls - styled to match design system */}
         <NavigationControl position="top-right" showCompass={true} showZoom={true} />
