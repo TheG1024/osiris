@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIRIS - Cyberpunk Modal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cyan: #00f5ff;
+      --cyan-dim: rgba(0, 245, 255, 0.3);
+      --cyan-soft: rgba(0, 245, 255, 0.1);
+      --cyan-glow: rgba(0, 245, 255, 0.4);
+      --navy-deep: #0a0e27;
+      --navy-mid: #1a1f3a;
+      --navy-light: #0f1428;
+      --text-light: #8bcfff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--navy-deep);
+      color: var(--cyan);
+    }
+    .font-display { font-family: 'Orbitron', sans-serif; }
+    .uppercase { text-transform: uppercase; }
+    .grid-bg {
+      background-image: linear-gradient(rgba(0, 245, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 245, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .glow-text { text-shadow: 0 0 20px var(--cyan); }
+    .glow-box { box-shadow: 0 0 30px var(--cyan-dim), inset 0 0 30px var(--cyan-soft); }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px var(--cyan)); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 0 40px var(--cyan)); }
+    }
+    @keyframes slideUp {
+      from { transform: translate(-50%, 40%); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
+    }
+    .animate-pulse-slow { animation: pulse 2s ease-in-out infinite; }
+    .animate-slideUp { animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    
+    .btn-cyber {
+      position: relative;
+      overflow: hidden;
+      border: 2px solid var(--cyan);
+      background: transparent;
+      color: var(--cyan);
+      transition: all 0.3s;
+    }
+    .btn-cyber::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0,245,255,0.3), transparent);
+      transition: left 0.5s;
+    }
+    .btn-cyber:hover { transform: translateY(-3px); box-shadow: 0 0 30px var(--cyan-glow); }
+    .btn-cyber:hover::before { left: 100%; }
+    .btn-cyber.active { background: var(--cyan); color: var(--navy-deep); }
+    
+    input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 30px var(--cyan-dim); }
+    
+    .stat-card {
+      background: linear-gradient(135deg, rgba(26, 31, 58, 0.8), rgba(15, 20, 40, 0.9));
+      border: 1px solid var(--cyan-dim);
+    }
+    
+    .corner-tl { position: absolute; top: -3px; left: -3px; width: 40px; height: 40px; border-top: 3px solid var(--cyan); border-left: 3px solid var(--cyan); border-radius: 8px 0 0 0; }
+    .corner-tr { position: absolute; top: -3px; right: -3px; width: 40px; height: 40px; border-top: 3px solid var(--cyan); border-right: 3px solid var(--cyan); border-radius: 0 8px 0 0; }
+    .corner-bl { position: absolute; bottom: -3px; left: -3px; width: 40px; height: 40px; border-bottom: 3px solid var(--cyan); border-left: 3px solid var(--cyan); border-radius: 0 0 0 8px; }
+    .corner-br { position: absolute; bottom: -3px; right: -3px; width: 40px; height: 40px; border-bottom: 3px solid var(--cyan); border-right: 3px solid var(--cyan); border-radius: 0 0 8px 0; }
+  </style>
+</head>
+<body class="min-h-screen grid-bg flex items-center justify-center p-8">
+  <!-- HEADER -->
+  <header class="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 border-2 border-[#00f5ff] rounded flex items-center justify-center glow-text">
+        <span class="font-display text-sm font-bold">O</span>
+      </div>
+      <span class="font-display text-lg tracking-wider glow-text">OSIRIS</span>
+    </div>
+    <div class="flex items-center gap-4 text-xs">
+      <span class="text-[#8bcfff]">● LIVE</span>
+      <span>123 ENTITIES</span>
+    </div>
+  </header>
+
+  <!-- MAIN CARD -->
+  <div class="relative w-full max-w-5xl animate-slideUp" style="animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+    <!-- Corner accents -->
+    <div class="corner-tl"></div>
+    <div class="corner-tr"></div>
+    <div class="corner-bl"></div>
+    <div class="corner-br"></div>
+    
+    <div class="bg-gradient-to-br from-[#1a1f3a] via-[#0f1428] to-[#0a0e27] border-3 border-[#00f5ff] rounded-2xl p-6 glow-box">
+      
+      <!-- Title -->
+      <div class="text-center mb-6">
+        <div class="font-display text-4xl font-black uppercase tracking-widest glow-text mb-2">Osiris</div>
+        <div class="text-xs text-[#8bcfff] uppercase tracking-[0.3em]">Satellite Intelligence Platform</div>
+      </div>
+      
+      <!-- Grid Layout -->
+      <div class="grid grid-cols-3 gap-4">
+        
+        <!-- Left Column: Search & Filters -->
+        <div class="space-y-4">
+          <div class="bg-[#0a0e2790] border border-[#00f5ff30] rounded-xl p-4">
+            <input type="text" placeholder="Search database..." 
+              class="w-full bg-[#0a0e27] border border-[#00f5ff30] rounded-lg px-4 py-3 text-sm text-[#00f5ff] placeholder-[#00f5ff40]">
+          </div>
+          
+          <div class="flex flex-wrap gap-2">
+            <button class="btn-cyber active px-3 py-2 text-xs uppercase tracking-wider">All</button>
+            <button class="btn-cyber px-3 py-2 text-xs uppercase tracking-wider">Air</button>
+            <button class="btn-cyber px-3 py-2 text-xs uppercase tracking-wider">Sea</button>
+            <button class="btn-cyber px-3 py-2 text-xs uppercase tracking-wider">Space</button>
+          </div>
+          
+          <div class="bg-[#0a0e2790] border border-[#00f5ff30] rounded-xl p-4">
+            <div class="font-display text-[10px] uppercase tracking-widest text-[#8bcfff] mb-3">◈ Active Units</div>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center"><span class="text-[#8bcfff]">Flights</span><span class="text-[#00d4ff] font-display">50</span></div>
+              <div class="flex justify-between items-center"><span class="text-[#8bcfff]">Ships</span><span class="text-[#ff6b00] font-display">30</span></div>
+              <div class="flex justify-between items-center"><span class="text-[#8bcfff]">Satellites</span><span class="text-[#ff00ff] font-display">20</span></div>
+              <div class="flex justify-between items-center"><span class="text-[#8bcfff]">Events</span><span class="text-[#ff3333] font-display">23</span></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Center: Map Placeholder -->
+        <div class="bg-[#050a15] rounded-xl border border-[#00f5ff20] relative overflow-hidden" style="min-height: 300px;">
+          <div class="absolute inset-0" style="background-image: radial-gradient(circle at 30% 30%, rgba(0,245,255,0.08) 0%, transparent 50%);"></div>
+          <div class="absolute inset-0 grid-bg opacity-50"></div>
+          
+          <!-- Radar circles -->
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border border-[#00f5ff20] rounded-full"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-[#00f5ff15] rounded-full"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-[#00f5ff10] rounded-full"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 border border-[#00f5ff05] rounded-full"></div>
+          
+          <!-- Sweep line -->
+          <div class="absolute top-1/2 left-1/2 w-[1px] h-40 bg-gradient-to-b from-transparent via-[#00f5ff] to-transparent origin-top animate-pulse-slow"></div>
+          
+          <!-- Entity dots -->
+          <div class="absolute w-2 h-2 bg-[#00d4ff] rounded-full" style="top: 30%; left: 40%; box-shadow: 0 0 10px #00d4ff;"></div>
+          <div class="absolute w-2 h-2 bg-[#00d4ff] rounded-full" style="top: 35%; left: 45%; box-shadow: 0 0 10px #00d4ff;"></div>
+          <div class="absolute w-2 h-2 bg-[#ff6b00] rounded-full" style="top: 55%; left: 25%; box-shadow: 0 0 10px #ff6b00;"></div>
+          <div class="absolute w-2 h-2 bg-[#ff00ff] rounded-full" style="top: 25%; left: 65%; box-shadow: 0 0 10px #ff00ff;"></div>
+          <div class="absolute w-2 h-2 bg-[#ff3333] rounded-full" style="top: 65%; left: 70%; box-shadow: 0 0 10px #ff3333;"></div>
+          
+          <div class="absolute bottom-3 right-3 flex gap-1">
+            <button class="btn-cyber w-6 h-6 text-xs">+</button>
+            <button class="btn-cyber w-6 h-6 text-xs">−</button>
+          </div>
+        </div>
+        
+        <!-- Right Column: Intel -->
+        <div class="space-y-4">
+          <div class="bg-[#0a0e2790] border border-[#00f5ff30] rounded-xl p-4 h-full">
+            <div class="font-display text-[10px] uppercase tracking-widest text-[#8bcfff] mb-3">◈ Selected Entity</div>
+            
+            <div class="bg-[#0a0e27] rounded-lg p-3 mb-3 border border-[#00d4ff30]">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="w-2 h-2 bg-[#00d4ff] rounded-full animate-pulse-slow"></span>
+                <span class="text-xs text-[#00d4ff] uppercase">Aircraft</span>
+              </div>
+              <div class="font-display text-xl glow-text">EK7007</div>
+              <div class="text-xs text-[#8bcfff80]">Boeing 737-800</div>
+              <div class="text-[10px] text-[#8bcfff60] mt-2">51.2°N, 4.5°E • 18:42 UTC</div>
+            </div>
+            
+            <div class="bg-[#ff333320] rounded-lg p-3 mb-3 border border-[#ff333350]">
+              <div class="text-xs text-red-400 uppercase glow-text">⚠ Threat Detected</div>
+              <div class="text-[10px] text-[#8bcfff80]">OFAC SDN Match</div>
+            </div>
+            
+            <div class="bg-[#0a0e27] rounded-lg p-3 border border-[#00f5ff20]">
+              <div class="text-[10px] text-[#8bcfff] uppercase">Database</div>
+              <div class="font-display text-lg">19,778</div>
+              <div class="text-[10px] text-[#8bcfff60]">Sanctions • OFAC EU UN</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="mt-4 pt-4 border-t border-[#00f5ff20] flex justify-between items-center text-xs text-[#8bcfff80]">
+        <span>TLE STATUS: <span class="text-green-400">ACTIVE</span></span>
+        <span class="font-mono">18:44:34 UTC</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

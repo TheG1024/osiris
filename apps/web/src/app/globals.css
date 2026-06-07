@@ -777,6 +777,123 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   MULTI-THEME SYSTEM
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Default: Cyberpunk theme (current) */
+:root,
+[data-theme="cyberpunk"] {
+  --theme-bg-primary: #0a0e27;
+  --theme-bg-secondary: rgba(10, 14, 39, 0.9);
+  --theme-bg-tertiary: #050a15;
+  --theme-accent: #00f5ff;
+  --theme-accent-soft: rgba(0, 245, 255, 0.1);
+  --theme-accent-dim: rgba(0, 245, 255, 0.3);
+  --theme-accent-glow: rgba(0, 245, 255, 0.4);
+  --theme-text-primary: #00f5ff;
+  --theme-text-secondary: #8bcfff;
+  --theme-text-muted: rgba(139, 207, 255, 0.6);
+  --theme-border: rgba(0, 245, 255, 0.3);
+  --theme-entity-aircraft: #00d4ff;
+  --theme-entity-ship: #ff6b00;
+  --theme-entity-satellite: #ff00ff;
+  --theme-entity-fire: #ff3333;
+  --theme-entity-earthquake: #ffff00;
+  --theme-font-display: 'Orbitron', sans-serif;
+  --theme-font-body: 'JetBrains Mono', monospace;
+  --theme-glow-text: 0 0 20px var(--theme-accent);
+  --theme-grid-size: 40px;
+  --theme-grid-opacity: 0.03;
+}
+
+/* Glass Minimal theme */
+[data-theme="glass"] {
+  --theme-bg-primary: #0f172a;
+  --theme-bg-secondary: rgba(15, 23, 42, 0.85);
+  --theme-bg-tertiary: #1e293b;
+  --theme-accent: #22d3ee;
+  --theme-accent-soft: rgba(34, 211, 238, 0.1);
+  --theme-accent-dim: rgba(34, 211, 238, 0.2);
+  --theme-accent-glow: rgba(34, 211, 238, 0.3);
+  --theme-text-primary: #f1f5f9;
+  --theme-text-secondary: #94a3b8;
+  --theme-text-muted: rgba(148, 163, 184, 0.6);
+  --theme-border: rgba(148, 163, 184, 0.15);
+  --theme-entity-aircraft: #22d3ee;
+  --theme-entity-ship: #f97316;
+  --theme-entity-satellite: #a855f7;
+  --theme-entity-fire: #ef4444;
+  --theme-entity-earthquake: #eab308;
+  --theme-font-display: 'Inter', sans-serif;
+  --theme-font-body: 'Inter', sans-serif;
+  --theme-glow-text: none;
+  --theme-grid-size: 50px;
+  --theme-grid-opacity: 0.05;
+}
+
+/* Industrial theme */
+[data-theme="industrial"] {
+  --theme-bg-primary: #0d0d0d;
+  --theme-bg-secondary: rgba(20, 20, 20, 0.95);
+  --theme-bg-tertiary: #0a0a0a;
+  --theme-accent: #f97316;
+  --theme-accent-soft: rgba(249, 115, 22, 0.1);
+  --theme-accent-dim: rgba(249, 115, 22, 0.2);
+  --theme-accent-glow: rgba(249, 115, 22, 0.3);
+  --theme-text-primary: #e5e5e5;
+  --theme-text-secondary: #a3a3a3;
+  --theme-text-muted: rgba(163, 163, 163, 0.6);
+  --theme-border: #262626;
+  --theme-entity-aircraft: #3b82f6;
+  --theme-entity-ship: #f97316;
+  --theme-entity-satellite: #a855f7;
+  --theme-entity-fire: #ef4444;
+  --theme-entity-earthquake: #eab308;
+  --theme-font-display: 'IBM Plex Mono', monospace;
+  --theme-font-body: 'IBM Plex Mono', monospace;
+  --theme-glow-text: none;
+  --theme-grid-size: 30px;
+  --theme-grid-opacity: 0.05;
+}
+
+/* Theme-aware components */
+.theme-grid-bg {
+  background-image: 
+    linear-gradient(var(--theme-accent) var(--theme-grid-opacity), transparent 1px),
+    linear-gradient(90deg, var(--theme-accent) var(--theme-grid-opacity), transparent 1px);
+  background-size: var(--theme-grid-size) var(--theme-grid-size);
+}
+
+.theme-glow-text {
+  text-shadow: var(--theme-glow-text);
+}
+
+.theme-panel {
+  background: var(--theme-bg-secondary);
+  border: 1px solid var(--theme-border);
+  backdrop-filter: blur(20px);
+}
+
+.theme-btn {
+  border: 1px solid var(--theme-accent);
+  background: transparent;
+  color: var(--theme-accent);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.theme-btn:hover {
+  background: var(--theme-accent);
+  color: var(--theme-bg-primary);
+  transform: translateY(-2px);
+}
+
+.theme-btn.active {
+  background: var(--theme-accent);
+  color: var(--theme-bg-primary);
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIRIS - Multi-Theme</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* ================= CYBERPUNK THEME ================= */
+    [data-theme="cyberpunk"] {
+      --bg-primary: #0a0e27;
+      --bg-secondary: #0a0e27e0;
+      --bg-tertiary: #050a15;
+      --accent: #00f5ff;
+      --accent-soft: rgba(0, 245, 255, 0.1);
+      --accent-dim: rgba(0, 245, 255, 0.3);
+      --accent-glow: rgba(0, 245, 255, 0.4);
+      --text-primary: #00f5ff;
+      --text-secondary: #8bcfff;
+      --text-muted: rgba(139, 207, 255, 0.6);
+      --border: rgba(0, 245, 255, 0.3);
+      --entity-aircraft: #00d4ff;
+      --entity-ship: #ff6b00;
+      --entity-satellite: #ff00ff;
+      --entity-fire: #ff3333;
+      --entity-earthquake: #ffff00;
+      --font-display: 'Orbitron', sans-serif;
+      --font-body: 'JetBrains Mono', monospace;
+      --glow-text: 0 0 20px var(--accent);
+      --glow-box: 0 0 30px var(--accent-dim), inset 0 0 30px var(--accent-soft);
+      --grid-size: 40px;
+      --grid-opacity: 0.03;
+    }
+    
+    /* ================= GLASS MINIMAL THEME ================= */
+    [data-theme="glass"] {
+      --bg-primary: #0f172a;
+      --bg-secondary: rgba(15, 23, 42, 0.85);
+      --bg-tertiary: #1e293b;
+      --accent: #22d3ee;
+      --accent-soft: rgba(34, 211, 238, 0.1);
+      --accent-dim: rgba(34, 211, 238, 0.2);
+      --accent-glow: rgba(34, 211, 238, 0.3);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: rgba(148, 163, 184, 0.6);
+      --border: rgba(148, 163, 184, 0.15);
+      --entity-aircraft: #22d3ee;
+      --entity-ship: #f97316;
+      --entity-satellite: #a855f7;
+      --entity-fire: #ef4444;
+      --entity-earthquake: #eab308;
+      --font-display: 'Inter', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --glow-text: none;
+      --glow-box: none;
+      --grid-size: 50px;
+      --grid-opacity: 0.05;
+    }
+    
+    /* ================= INDUSTRIAL THEME ================= */
+    [data-theme="industrial"] {
+      --bg-primary: #0d0d0d;
+      --bg-secondary: rgba(20, 20, 20, 0.95);
+      --bg-tertiary: #0a0a0a;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.1);
+      --accent-dim: rgba(249, 115, 22, 0.2);
+      --accent-glow: rgba(249, 115, 22, 0.3);
+      --text-primary: #e5e5e5;
+      --text-secondary: #a3a3a3;
+      --text-muted: rgba(163, 163, 163, 0.6);
+      --border: #262626;
+      --entity-aircraft: #3b82f6;
+      --entity-ship: #f97316;
+      --entity-satellite: #a855f7;
+      --entity-fire: #ef4444;
+      --entity-earthquake: #eab308;
+      --font-display: 'IBM Plex Mono', monospace;
+      --font-body: 'IBM Plex Mono', monospace;
+      --glow-text: none;
+      --glow-box: none;
+      --grid-size: 30px;
+      --grid-opacity: 0.05;
+    }
+    
+    /* Global styles */
+    * { box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+    
+    .font-display { font-family: var(--font-display); }
+    
+    .grid-bg {
+      background-image: 
+        linear-gradient(var(--accent) var(--grid-opacity), transparent 1px),
+        linear-gradient(90deg, var(--accent) var(--grid-opacity), transparent 1px);
+      background-size: var(--grid-size) var(--grid-size);
+    }
+    
+    .glow-text { text-shadow: var(--glow-text); }
+    .glow-box { box-shadow: var(--glow-box); }
+    
+    [data-theme="glass"] .glass-panel {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+    }
+    
+    [data-theme="glass"] body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    }
+    
+    [data-theme="industrial"] body {
+      background: #0d0d0d;
+    }
+    
+    [data-theme="industrial"] .hud-panel {
+      background: #141414;
+      border: 1px solid #2a2a2a;
+    }
+    
+    /* Entity markers */
+    .entity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .entity-dot:hover { transform: scale(2.5); }
+    .entity-dot.aircraft { background: var(--entity-aircraft); box-shadow: 0 0 12px var(--entity-aircraft); }
+    .entity-dot.ship { background: var(--entity-ship); box-shadow: 0 0 12px var(--entity-ship); }
+    .entity-dot.satellite { background: var(--entity-satellite); box-shadow: 0 0 12px var(--entity-satellite); }
+    .entity-dot.fire { background: var(--entity-fire); box-shadow: 0 0 12px var(--entity-fire); }
+    .entity-dot.earthquake { background: var(--entity-earthquake); box-shadow: 0 0 12px var(--entity-earthquake); }
+    
+    /* Buttons */
+    .btn-theme {
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      transition: all 0.2s;
+      cursor: pointer;
+      font-family: var(--font-body);
+    }
+    .btn-theme:hover { 
+      background: var(--accent); 
+      color: var(--bg-primary);
+      transform: translateY(-2px);
+    }
+    .btn-theme.active {
+      background: var(--accent);
+      color: var(--bg-primary);
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 20px var(--accent-dim);
+    }
+    
+    .alert-red {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+  </style>
+</head>
+<body class="h-screen overflow-hidden relative" data-theme="cyberpunk">
+  
+  <!-- MAP BACKGROUND -->
+  <div class="absolute inset-0 bg-[var(--bg-tertiary)]">
+    <div class="absolute inset-0 grid-bg opacity-50"></div>
+    <div class="absolute inset-0" style="background-image: radial-gradient(ellipse at center, var(--accent-soft) 0%, transparent 70%);"></div>
+    
+    <!-- Entity dots -->
+    <div class="entity-dot aircraft" style="top: 15%; left: 20%;"></div>
+    <div class="entity-dot aircraft" style="top: 20%; left: 28%;"></div>
+    <div class="entity-dot aircraft" style="top: 25%; left: 35%;"></div>
+    <div class="entity-dot aircraft" style="top: 30%; left: 42%;"></div>
+    <div class="entity-dot aircraft" style="top: 18%; left: 45%;"></div>
+    <div class="entity-dot ship" style="top: 55%; left: 15%;"></div>
+    <div class="entity-dot ship" style="top: 60%; left: 22%;"></div>
+    <div class="entity-dot ship" style="top: 52%; left: 28%;"></div>
+    <div class="entity-dot satellite" style="top: 10%; left: 55%;"></div>
+    <div class="entity-dot satellite" style="top: 15%; left: 62%;"></div>
+    <div class="entity-dot satellite" style="top: 20%; left: 68%;"></div>
+    <div class="entity-dot satellite" style="top: 12%; left: 72%;"></div>
+    <div class="entity-dot fire" style="top: 65%; left: 65%;"></div>
+    <div class="entity-dot fire" style="top: 70%; left: 72%;"></div>
+  </div>
+
+  <!-- TOP BAR -->
+  <header class="absolute top-0 left-0 right-0 z-50 p-3">
+    <div class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-full px-6 py-2 flex items-center gap-4 backdrop-blur-sm">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 border-2 border-[var(--accent)] rounded flex items-center justify-center">
+          <span class="font-display text-xs font-bold" style="color: var(--accent);">O</span>
+        </div>
+        <span class="font-display text-sm tracking-wider glow-text" style="color: var(--accent);">OSIRIS</span>
+      </div>
+      <span class="text-xs" style="color: var(--accent);">●</span>
+      <span class="text-xs" style="color: var(--text-secondary);">LIVE</span>
+      <span class="flex-1"></span>
+      <input type="text" placeholder="Search..." 
+        class="bg-transparent border-b border-[var(--border)] px-2 py-1 text-xs w-32" 
+        style="color: var(--text-primary); border-color: var(--border);"
+        data-placeholder-color="var(--text-muted)">
+      <span class="text-xs"><span style="color: var(--text-secondary);">123</span> entities</span>
+      <span class="text-xs font-mono">18:44</span>
+    </div>
+  </header>
+
+  <!-- THEME SWITCHER -->
+  <div class="absolute top-16 left-1/2 -translate-x-1/2 z-50">
+    <div class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg p-2 flex gap-2 backdrop-blur-sm">
+      <button class="btn-theme active px-3 py-1 text-[10px] uppercase" onclick="setTheme('cyberpunk')">Cyberpunk</button>
+      <button class="btn-theme px-3 py-1 text-[10px] uppercase" onclick="setTheme('glass')">Glass</button>
+      <button class="btn-theme px-3 py-1 text-[10px] uppercase" onclick="setTheme('industrial')">Industrial</button>
+    </div>
+  </div>
+
+  <!-- LEFT PANEL -->
+  <aside class="absolute top-28 left-4 w-56 z-40 flex flex-col gap-2">
+    <div class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg p-3 backdrop-blur-sm hud-panel">
+      <div class="flex gap-1 mb-2">
+        <button class="btn-theme active px-2 py-1 text-[10px] uppercase">All</button>
+        <button class="btn-theme px-2 py-1 text-[10px] uppercase">Air</button>
+        <button class="btn-theme px-2 py-1 text-[10px] uppercase">Sea</button>
+        <button class="btn-theme px-2 py-1 text-[10px] uppercase">Sat</button>
+      </div>
+    </div>
+    <div class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg p-3 backdrop-blur-sm">
+      <div class="text-[10px] uppercase tracking-wider mb-2" style="color: var(--text-secondary);">Stats</div>
+      <div class="grid grid-cols-4 gap-2 text-center text-xs">
+        <div><div class="font-display" style="color: var(--entity-aircraft);">50</div><div class="text-[10px]" style="color: var(--text-muted);">Air</div></div>
+        <div><div class="font-display" style="color: var(--entity-ship);">30</div><div class="text-[10px]" style="color: var(--text-muted);">Sea</div></div>
+        <div><div class="font-display" style="color: var(--entity-satellite);">20</div><div class="text-[10px]" style="color: var(--text-muted);">Sat</div></div>
+        <div><div class="font-display" style="color: var(--entity-fire);">23</div><div class="text-[10px]" style="color: var(--text-muted);">Evt</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- RIGHT PANEL - INTEL -->
+  <aside class="absolute top-28 right-4 w-64 z-40">
+    <div class="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg p-3 backdrop-blur-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-xs uppercase tracking-wider">Intel</div>
+        <div class="text-[10px]" style="color: var(--text-muted);">19.7K DB</div>
+      </div>
+      <div class="bg-[var(--bg-tertiary)] rounded p-2 mb-2 border" style="border-color: var(--entity-aircraft);">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full" style="background: var(--entity-aircraft);"></span>
+          <span class="text-xs" style="color: var(--entity-aircraft);">EK7007</span>
+        </div>
+        <div class="text-[10px]" style="color: var(--text-muted);">Boeing 737-800</div>
+      </div>
+      <div class="alert-red rounded p-2">
+        <div class="text-xs" style="color: #ef4444;">⚠ OFAC Match</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- BOTTOM CONTROLS -->
+  <div class="absolute bottom-4 right-4 z-40 flex gap-2">
+    <button class="btn-theme w-8 h-8 text-sm">+</button>
+    <button class="btn-theme w-8 h-8 text-sm">−</button>
+  </div>
+  
+  <div class="absolute bottom-4 left-4 z-40 flex gap-4 text-[10px]" style="color: var(--text-muted);">
+    <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background: var(--entity-aircraft);"></span> Air</div>
+    <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background: var(--entity-ship);"></span> Sea</div>
+    <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background: var(--entity-satellite);"></span> Sat</div>
+    <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full" style="background: var(--entity-fire);"></span> Fire</div>
+  </div>
+
+  <script>
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      
+      // Update button states
+      document.querySelectorAll('.btn-theme').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // Update placeholder color
+      const input = document.querySelector('input[type="text"]');
+      input.style.setProperty('--placeholder-color', 'var(--text-muted)');
+    }
+    
+    // Style placeholders
+    document.querySelectorAll('input').forEach(input => {
+      input.style.setProperty('color', 'var(--text-primary)');
+    });
+  </script>
+  
+  <style>
+    input::placeholder { color: var(--text-muted); }
+  </style>
+</body>
+</html>

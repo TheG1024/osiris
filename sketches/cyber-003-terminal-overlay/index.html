@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIRIS - Terminal Overlay</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cyan: #00f5ff;
+      --cyan-dim: rgba(0, 245, 255, 0.3);
+      --cyan-glow: rgba(0, 245, 255, 0.4);
+      --navy-deep: #0a0e27;
+      --text-light: #8bcfff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--navy-deep);
+      color: var(--cyan);
+    }
+    .font-display { font-family: 'Orbitron', sans-serif; }
+    .uppercase { text-transform: uppercase; }
+    .grid-bg {
+      background-image: linear-gradient(rgba(0, 245, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 245, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .glow-text { text-shadow: 0 0 20px var(--cyan); }
+    
+    @keyframes blink { 50% { opacity: 0.3; } }
+    @keyframes scan {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    .blink { animation: blink 1s infinite; }
+    
+    .btn-cyber {
+      border: 2px solid var(--cyan);
+      background: transparent;
+      color: var(--cyan);
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .btn-cyber:hover { background: var(--cyan); color: var(--navy-deep); transform: translateY(-2px); }
+    .btn-cyber.active { background: var(--cyan); color: var(--navy-deep); }
+    
+    .scan-bar {
+      position: relative;
+      overflow: hidden;
+    }
+    .scan-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(0,245,255,0.15), transparent);
+      animation: scan 2s linear infinite;
+    }
+    
+    input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 30px var(--cyan-dim); }
+    
+    .entity-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    .entity-dot:hover { transform: scale(3); }
+    .entity-dot.aircraft { background: #00d4ff; box-shadow: 0 0 10px #00d4ff; }
+    .entity-dot.ship { background: #ff6b00; box-shadow: 0 0 10px #ff6b00; }
+    .entity-dot.satellite { background: #ff00ff; box-shadow: 0 0 10px #ff00ff; }
+    .entity-dot.fire { background: #ff3333; box-shadow: 0 0 10px #ff3333; }
+  </style>
+</head>
+<body class="h-screen overflow-hidden relative">
+  <!-- FULL MAP BACKGROUND -->
+  <div class="absolute inset-0 bg-[#050a15]">
+    <div class="absolute inset-0 grid-bg opacity-30"></div>
+    <div class="absolute inset-0" style="background-image: radial-gradient(ellipse at center, rgba(0,245,255,0.05) 0%, transparent 70%);"></div>
+    
+    <!-- Entity dots scattered -->
+    <div class="entity-dot aircraft" style="top: 15%; left: 20%;"></div>
+    <div class="entity-dot aircraft" style="top: 20%; left: 28%;"></div>
+    <div class="entity-dot aircraft" style="top: 25%; left: 35%;"></div>
+    <div class="entity-dot aircraft" style="top: 30%; left: 42%;"></div>
+    <div class="entity-dot aircraft" style="top: 18%; left: 45%;"></div>
+    <div class="entity-dot ship" style="top: 55%; left: 15%;"></div>
+    <div class="entity-dot ship" style="top: 60%; left: 22%;"></div>
+    <div class="entity-dot ship" style="top: 52%; left: 28%;"></div>
+    <div class="entity-dot satellite" style="top: 10%; left: 55%;"></div>
+    <div class="entity-dot satellite" style="top: 15%; left: 62%;"></div>
+    <div class="entity-dot satellite" style="top: 20%; left: 68%;"></div>
+    <div class="entity-dot satellite" style="top: 12%; left: 72%;"></div>
+    <div class="entity-dot fire" style="top: 65%; left: 65%;"></div>
+    <div class="entity-dot fire" style="top: 70%; left: 72%;"></div>
+  </div>
+
+  <!-- FLOATING TOP BAR -->
+  <header class="absolute top-0 left-0 right-0 z-50 p-3">
+    <div class="bg-[#0a0e27e0] border border-[#00f5ff30] rounded-full px-6 py-2 flex items-center gap-4 backdrop-blur-sm">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 border border-[#00f5ff] rounded flex items-center justify-center">
+          <span class="font-display text-xs font-bold">O</span>
+        </div>
+        <span class="font-display text-sm tracking-wider glow-text">OSIRIS</span>
+      </div>
+      <span class="text-xs blink">●</span>
+      <span class="text-xs text-[#8bcfff]">LIVE</span>
+      <span class="flex-1"></span>
+      <input type="text" placeholder="Search..." 
+        class="bg-transparent border-b border-[#00f5ff30] px-2 py-1 text-xs w-32 text-[#00f5ff] placeholder-[#00f5ff40] focus:border-[#00f5ff]">
+      <span class="text-xs"><span class="text-[#8bcfff]">123</span> entities</span>
+      <span class="text-xs font-mono">18:44</span>
+    </div>
+  </header>
+
+  <!-- FLOATING LEFT PANEL -->
+  <aside class="absolute top-16 left-4 w-56 z-40 flex flex-col gap-2">
+    <div class="bg-[#0a0e27e0] border border-[#00f5ff30] rounded-lg p-3 backdrop-blur-sm scan-bar">
+      <div class="flex gap-1 mb-2">
+        <button class="btn-cyber active px-2 py-1 text-[10px] uppercase">All</button>
+        <button class="btn-cyber px-2 py-1 text-[10px] uppercase">Air</button>
+        <button class="btn-cyber px-2 py-1 text-[10px] uppercase">Sea</button>
+        <button class="btn-cyber px-2 py-1 text-[10px] uppercase">Sat</button>
+      </div>
+    </div>
+    <div class="bg-[#0a0e27e0] border border-[#00f5ff30] rounded-lg p-3 backdrop-blur-sm">
+      <div class="text-[10px] text-[#8bcfff] uppercase tracking-wider mb-2">Stats</div>
+      <div class="grid grid-cols-4 gap-2 text-center text-xs">
+        <div><div class="text-[#00d4ff] font-display">50</div><div class="text-[10px] text-[#8bcfff60]">Air</div></div>
+        <div><div class="text-[#ff6b00] font-display">30</div><div class="text-[10px] text-[#8bcfff60]">Sea</div></div>
+        <div><div class="text-[#ff00ff] font-display">20</div><div class="text-[10px] text-[#8bcfff60]">Sat</div></div>
+        <div><div class="text-[#ff3333] font-display">23</div><div class="text-[10px] text-[#8bcfff60]">Evt</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- FLOATING RIGHT PANEL - INTEL -->
+  <aside class="absolute top-16 right-4 w-64 z-40">
+    <div class="bg-[#0a0e27e0] border border-[#00f5ff30] rounded-lg p-3 backdrop-blur-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-xs uppercase tracking-wider">Intel</div>
+        <div class="text-[10px] text-[#8bcfff60]">19.7K DB</div>
+      </div>
+      <div class="bg-[#0a0e27] rounded p-2 mb-2 border border-[#00d4ff30]">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 bg-[#00d4ff]"></span>
+          <span class="text-xs text-[#00d4ff]">EK7007</span>
+        </div>
+        <div class="text-[10px] text-[#8bcfff80]">Boeing 737-800</div>
+      </div>
+      <div class="bg-[#ff333320] rounded p-2 border border-[#ff333350]">
+        <div class="text-xs text-red-400">⚠ OFAC</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- BOTTOM CONTROLS -->
+  <div class="absolute bottom-4 right-4 z-40 flex gap-2">
+    <button class="btn-cyber w-8 h-8 text-sm">+</button>
+    <button class="btn-cyber w-8 h-8 text-sm">−</button>
+  </div>
+  
+  <div class="absolute bottom-4 left-4 z-40 flex gap-4 text-[10px] text-[#8bcfff80]">
+    <div class="flex items-center gap-1"><span class="w-2 h-2 bg-[#00d4ff]"></span> Air</div>
+    <div class="flex items-center gap-1"><span class="w-2 h-2 bg-[#ff6b00]"></span> Sea</div>
+    <div class="flex items-center gap-1"><span class="w-2 h-2 bg-[#ff00ff]"></span> Sat</div>
+    <div class="flex items-center gap-1"><span class="w-2 h-2 bg-[#ff3333]"></span> Fire</div>
+  </div>
+</body>
+</html>

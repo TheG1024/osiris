@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIRIS - Map First (Design System)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a0a;
+      --accent-green: #00ff41;
+      --accent-green-dim: #00ff4133;
+      --accent-cyan: #00d4ff;
+      --accent-orange: #ff6b00;
+      --accent-magenta: #ff00ff;
+      --accent-red: #ff3333;
+      --accent-yellow: #ffff00;
+      --border-color: #1a3a1a;
+    }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg-primary);
+      color: var(--accent-green);
+    }
+    .font-display { font-family: 'Orbitron', sans-serif; }
+    .phosphor { text-shadow: 0 0 10px var(--accent-green), 0 0 20px var(--accent-green); }
+    .scan-lines {
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,65,0.03) 2px, rgba(0,255,65,0.03) 4px);
+    }
+    .entity-marker {
+      width: 12px;
+      height: 12px;
+      transform: rotate(45deg);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .entity-marker:hover { transform: rotate(45deg) scale(1.8); }
+    .entity-marker.aircraft { background: var(--accent-cyan); box-shadow: 0 0 15px var(--accent-cyan); }
+    .entity-marker.ship { background: var(--accent-orange); box-shadow: 0 0 15px var(--accent-orange); }
+    .entity-marker.satellite { background: var(--accent-magenta); box-shadow: 0 0 15px var(--accent-magenta); }
+    .entity-marker.fire { background: var(--accent-red); box-shadow: 0 0 15px var(--accent-red); }
+    .entity-marker.earthquake { background: var(--accent-yellow); box-shadow: 0 0 15px var(--accent-yellow); }
+    .btn-hud {
+      border: 1px solid var(--accent-green);
+      background: transparent;
+      color: var(--accent-green);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-hud:hover { background: var(--accent-green); color: var(--bg-primary); }
+    .btn-hud.active { background: var(--accent-green); color: var(--bg-primary); }
+    .blink { animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: 0.3; } }
+    .grid-overlay {
+      background-image: linear-gradient(var(--accent-green-dim) 1px, transparent 1px), linear-gradient(90deg, var(--accent-green-dim) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    input:focus { outline: none; border-color: var(--accent-green); }
+    
+    /* Hide everything except map until entity selected */
+    .overlay-hidden { opacity: 0; pointer-events: none; }
+  </style>
+</head>
+<body class="h-screen overflow-hidden scan-lines">
+  <!-- MINIMAL TOP BAR -->
+  <header class="h-10 border-b border-[#1a3a1a] flex items-center justify-between px-4 bg-black/90">
+    <div class="flex items-center gap-3">
+      <h1 class="font-display text-sm font-bold tracking-wider phosphor">OSIRIS</h1>
+      <span class="text-xs blink">● LIVE</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs"><span class="text-[#00ff41]/60">123</span> entities</span>
+      <input type="text" placeholder="Search..." 
+        class="bg-black border border-[#1a3a1a] px-2 py-1 text-[10px] w-32 text-[#00ff41] placeholder-[#00ff41]/30 focus:border-[#00ff41]">
+      <button class="btn-hud px-2 py-0.5 text-[10px]">Filters</button>
+    </div>
+  </header>
+
+  <!-- FULLSCREEN MAP -->
+  <main class="h-[calc(100vh-40px)] relative bg-[#050a05]">
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div class="relative w-full h-full max-w-4xl max-h-[600px]">
+        <div class="absolute inset-0 opacity-20 grid-overlay"></div>
+        
+        <!-- More entities for density feel -->
+        <div class="entity-marker aircraft" style="top: 15%; left: 25%;"></div>
+        <div class="entity-marker aircraft" style="top: 20%; left: 30%;"></div>
+        <div class="entity-marker aircraft" style="top: 25%; left: 35%;"></div>
+        <div class="entity-marker aircraft" style="top: 30%; left: 40%;"></div>
+        <div class="entity-marker aircraft" style="top: 35%; left: 45%;"></div>
+        <div class="entity-marker ship" style="top: 60%; left: 15%;"></div>
+        <div class="entity-marker ship" style="top: 65%; left: 20%;"></div>
+        <div class="entity-marker ship" style="top: 55%; left: 25%;"></div>
+        <div class="entity-marker satellite" style="top: 10%; left: 55%;"></div>
+        <div class="entity-marker satellite" style="top: 15%; left: 60%;"></div>
+        <div class="entity-marker satellite" style="top: 20%; left: 65%;"></div>
+        <div class="entity-marker satellite" style="top: 25%; left: 70%;"></div>
+        <div class="entity-marker fire" style="top: 70%; left: 65%;"></div>
+        <div class="entity-marker fire" style="top: 75%; left: 70%;"></div>
+        <div class="entity-marker earthquake" style="top: 45%; left: 45%;"></div>
+        <div class="entity-marker earthquake" style="top: 55%; left: 55%;"></div>
+      </div>
+    </div>
+
+    <!-- FLOATING LEGEND - BOTTOM CENTER -->
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 text-[10px]">
+      <div class="flex items-center gap-1"><span class="w-2 h-2 bg-[#00d4ff]"></span> Aircraft</div>
+      <div class="flex items-center gap-1"><span class="w-2 h-2 bg-[#ff6b00]"></span> Ships</div>
+      <div class="flex items-center gap-1"><span class="w-2 h-2 bg-[#ff00ff]"></span> Satellites</div>
+      <div class="flex items-center gap-1"><span class="w-2 h-2 bg-[#ff3333]"></span> Fires</div>
+      <div class="flex items-center gap-1"><span class="w-2 h-2 bg-[#ffff00]"></span> Earthquakes</div>
+    </div>
+
+    <!-- MINIMAL CONTROLS -->
+    <div class="absolute bottom-4 right-4 flex gap-1">
+      <button class="btn-hud w-6 h-6 text-sm">+</button>
+      <button class="btn-hud w-6 h-6 text-sm">−</button>
+    </div>
+  </main>
+
+  <!-- SLIDE-OUT PANEL (hidden by default, would animate in) -->
+  <aside class="absolute top-10 right-0 bottom-0 w-72 bg-black/95 border-l border-[#1a3a1a] p-4 transform transition-transform">
+    <div class="h-full flex flex-col gap-3">
+      <div class="font-display text-xs tracking-widest text-[#00ff41]/70">SELECTED</div>
+      <div class="border border-[#1a3a1a] p-3">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-3 h-3 bg-[#00d4ff]"></span>
+          <span class="text-sm font-display">EK7007</span>
+        </div>
+        <div class="text-xs text-[#00ff41]/60 mb-2">Boeing 737-800</div>
+        <div class="text-[10px] text-[#00ff41]/50">Last seen: 18:42:15 UTC</div>
+        <div class="text-[10px] text-[#00ff41]/50">Position: 51.2°N, 4.5°E</div>
+      </div>
+      <div class="border border-red-900/50 bg-red-900/10 p-3">
+        <div class="text-xs text-red-500 mb-1">⚠ OFAC MATCH</div>
+        <div class="text-[10px] text-[#00ff41]/50">SDN List Entry</div>
+      </div>
+      <div class="flex-1">
+        <div class="font-display text-xs tracking-widest text-[#00ff41]/70 mb-2">DATABASE</div>
+        <div class="text-xs text-[#00ff41]/60">19,778 sanctions</div>
+        <div class="text-[10px] text-[#00ff41]/40">OFAC • EU • UN</div>
+      </div>
+      <button class="btn-hud w-full py-2 text-xs">CLOSE</button>
+    </div>
+  </aside>
+</body>
+</html>

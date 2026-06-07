@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIRIS - Tactical HUD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --phosphor-green: #00ff41;
+      --phosphor-green-dim: #00ff4133;
+      --hud-bg: #0a0a0a;
+      --hud-border: #1a3a1a;
+      --scan-line: rgba(0, 255, 65, 0.03);
+    }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--hud-bg);
+      color: var(--phosphor-green);
+    }
+    .font-display { font-family: 'Orbitron', sans-serif; }
+    .phosphor {
+      text-shadow: 0 0 10px var(--phosphor-green), 0 0 20px var(--phosphor-green);
+    }
+    .hud-panel {
+      background: linear-gradient(180deg, rgba(0,20,0,0.9) 0%, rgba(0,10,0,0.95) 100%);
+      border: 1px solid var(--phosphor-green);
+      box-shadow: 0 0 20px var(--phosphor-green-dim), inset 0 0 30px rgba(0,255,65,0.05);
+    }
+    .scan-lines {
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        var(--scan-line) 2px,
+        var(--scan-line) 4px
+      );
+    }
+    .corner-bracket {
+      position: relative;
+    }
+    .corner-bracket::before, .corner-bracket::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--phosphor-green);
+    }
+    .corner-bracket::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+    .corner-bracket::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+    .blink { animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: 0.3; } }
+    .entity-marker {
+      width: 12px;
+      height: 12px;
+      background: var(--phosphor-green);
+      transform: rotate(45deg);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .entity-marker:hover {
+      box-shadow: 0 0 20px var(--phosphor-green);
+      transform: rotate(45deg) scale(1.5);
+    }
+    .entity-marker.aircraft { background: #00d4ff; --glow: #00d4ff; }
+    .entity-marker.ship { background: #ff6b00; --glow: #ff6b00; }
+    .entity-marker.satellite { background: #ff00ff; --glow: #ff00ff; }
+    .entity-marker.fire { background: #ff3333; --glow: #ff3333; }
+    .entity-marker.earthquake { background: #ffff00; --glow: #ffff00; }
+    .btn-hud {
+      border: 1px solid var(--phosphor-green);
+      background: transparent;
+      color: var(--phosphor-green);
+      transition: all 0.2s;
+    }
+    .btn-hud:hover {
+      background: var(--phosphor-green);
+      color: black;
+    }
+    .btn-hud.active {
+      background: var(--phosphor-green);
+      color: black;
+    }
+  </style>
+</head>
+<body class="h-screen overflow-hidden scan-lines">
+  <!-- Header -->
+  <header class="h-16 border-b border-[#1a3a1a] flex items-center justify-between px-6 bg-black/80">
+    <div class="flex items-center gap-4">
+      <h1 class="font-display text-2xl font-bold tracking-widest phosphor">OSIRIS</h1>
+      <span class="text-xs text-[#00ff41]/60">● REDUX</span>
+      <span class="text-xs blink">● LIVE</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="text-sm"><span class="text-[#00ff41]/60">ENTITIES:</span> 123</span>
+      <span class="text-sm"><span class="text-[#00ff41]/60">TLE:</span> ACTIVE</span>
+      <span class="text-xs font-mono">18:44:34 UTC</span>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn-hud px-3 py-1 text-xs">⛶ FULLSCREEN</button>
+      <button class="btn-hud px-3 py-1 text-xs">⚙ SETTINGS</button>
+      <button class="btn-hud px-3 py-1 text-xs">? HELP</button>
+    </div>
+  </header>
+
+  <div class="flex h-[calc(100vh-64px)]">
+    <!-- Sidebar -->
+    <aside class="w-64 border-r border-[#1a3a1a] p-4 bg-black/50 flex flex-col gap-4">
+      <div class="hud-panel p-4 corner-bracket">
+        <h3 class="font-display text-xs tracking-widest mb-3 text-[#00ff41]/70">INTELLIGENCE SEARCH</h3>
+        <input type="text" placeholder="Search flights, ships..." 
+          class="w-full bg-black border border-[#1a3a1a] px-3 py-2 text-sm focus:outline-none focus:border-[#00ff41] text-[#00ff41] placeholder-[#00ff41]/30">
+      </div>
+      
+      <div class="flex flex-wrap gap-1">
+        <button class="btn-hud active px-2 py-1 text-xs">ALL</button>
+        <button class="btn-hud px-2 py-1 text-xs">AIRCRAFT</button>
+        <button class="btn-hud px-2 py-1 text-xs">MARITIME</button>
+        <button class="btn-hud px-2 py-1 text-xs">SATELLITES</button>
+        <button class="btn-hud px-2 py-1 text-xs">ALERTS</button>
+      </div>
+
+      <div class="hud-panel p-4 flex-1">
+        <h3 class="font-display text-xs tracking-widest mb-3 text-[#00ff41]/70">STATISTICS</h3>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between"><span class="text-[#00ff41]/60">FLIGHTS</span><span>50</span></div>
+          <div class="flex justify-between"><span class="text-[#00ff41]/60">SHIPS</span><span>30</span></div>
+          <div class="flex justify-between"><span class="text-[#00ff41]/60">SATELLITES</span><span>20</span></div>
+          <div class="flex justify-between"><span class="text-[#00ff41]/60">FIRES</span><span>15</span></div>
+          <div class="flex justify-between"><span class="text-[#00ff41]/60">EARTHQUAKES</span><span>8</span></div>
+        </div>
+      </div>
+
+      <!-- Intel Panel -->
+      <div class="hud-panel p-4 flex-1">
+        <h3 class="font-display text-xs tracking-widest mb-3 text-[#00ff41]/70">INTELLIGENCE</h3>
+        <div class="text-xs space-y-2">
+          <div class="border border-[#1a3a1a] p-2">
+            <div class="text-[#00ff41]/60">AIRCRAFT</div>
+            <div class="font-display">EK7007</div>
+            <div class="text-[#00ff41]/50 text-[10px]">Boeing 737-800</div>
+            <div class="mt-2 text-[10px]">
+              <span class="text-red-500">⚠ OFAC MATCH</span>
+            </div>
+          </div>
+          <div class="border border-[#1a3a1a] p-2">
+            <div class="text-[#00ff41]/60">SANCTIONS DB</div>
+            <div class="">19,778 entries</div>
+            <div class="text-[#00ff41]/50 text-[10px]">OFAC SDN + EU + UN</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Map Area -->
+    <main class="flex-1 relative bg-[#050a05]">
+      <!-- Map placeholder with entities -->
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="relative w-full h-full max-w-4xl max-h-[600px]">
+          <!-- Grid overlay -->
+          <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(#00ff4111 1px, transparent 1px), linear-gradient(90deg, #00ff4111 1px, transparent 1px); background-size: 50px 50px;"></div>
+          
+          <!-- Entity markers -->
+          <div class="entity-marker aircraft" style="top: 20%; left: 30%;"></div>
+          <div class="entity-marker aircraft" style="top: 25%; left: 35%;"></div>
+          <div class="entity-marker aircraft" style="top: 30%; left: 40%;"></div>
+          <div class="entity-marker ship" style="top: 60%; left: 20%;"></div>
+          <div class="entity-marker ship" style="top: 65%; left: 25%;"></div>
+          <div class="entity-marker satellite" style="top: 15%; left: 60%;"></div>
+          <div class="entity-marker satellite" style="top: 20%; left: 65%;"></div>
+          <div class="entity-marker fire" style="top: 70%; left: 70%;"></div>
+          <div class="entity-marker fire" style="top: 75%; left: 75%;"></div>
+          <div class="entity-marker earthquake" style="top: 50%; left: 50%;"></div>
+        </div>
+      </div>
+      
+      <!-- Map controls -->
+      <div class="absolute bottom-4 right-4 flex flex-col gap-2">
+        <button class="btn-hud px-3 py-2 text-lg">+</button>
+        <button class="btn-hud px-3 py-2 text-lg">−</button>
+        <button class="btn-hud px-3 py-2 text-xs mt-2">⟲ RESET</button>
+      </div>
+      
+      <!-- Scale -->
+      <div class="absolute bottom-4 left-4 text-xs text-[#00ff41]/60">
+        <span>2000km</span>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

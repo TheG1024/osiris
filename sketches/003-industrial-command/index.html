@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIRIS - Industrial Command</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0d0d0d;
+      --bg-panel: #141414;
+      --border-color: #2a2a2a;
+      --accent-orange: #f97316;
+      --accent-blue: #3b82f6;
+      --text-bright: #e5e5e5;
+      --text-dim: #737373;
+    }
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-bright);
+    }
+    .mono { font-family: 'IBM Plex Mono', monospace; }
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+    }
+    .panel-active {
+      border-color: var(--accent-orange);
+    }
+    .btn- industrial {
+      background: #1a1a1a;
+      border: 1px solid var(--border-color);
+      color: var(--text-dim);
+      transition: all 0.15s;
+    }
+    .btn-industrial:hover {
+      background: #222;
+      color: var(--text-bright);
+      border-color: #404040;
+    }
+    .btn-industrial.active {
+      background: var(--accent-orange);
+      border-color: var(--accent-orange);
+      color: black;
+    }
+    .entity-marker {
+      width: 10px;
+      height: 10px;
+      background: var(--text-bright);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .entity-marker:hover {
+      transform: scale(2);
+    }
+    .entity-marker.aircraft { background: #3b82f6; }
+    .entity-marker.ship { background: #f97316; }
+    .entity-marker.satellite { background: #a855f7; }
+    .entity-marker.fire { background: #ef4444; }
+    .entity-marker.earthquake { background: #eab308; }
+    .progress-bar {
+      height: 4px;
+      background: #262626;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent-orange);
+    }
+  </style>
+</head>
+<body class="h-screen overflow-hidden flex flex-col">
+  <!-- Header Bar -->
+  <header class="h-12 bg-[#0a0a0a] border-b border-[#262626] flex items-center px-4 gap-6">
+    <div class="flex items-center gap-3">
+      <div class="w-6 h-6 bg-orange-500 flex items-center justify-center text-xs font-bold text-black">O</div>
+      <h1 class="text-base font-semibold tracking-tight">OSIRIS</h1>
+    </div>
+    <div class="mono text-xs text-[#737373]">COMMAND CENTER // LIVE</div>
+    <div class="flex-1"></div>
+    <div class="mono text-xs text-[#737373]">
+      <span>ENTITIES: <span class="text-white">123</span></span>
+      <span class="mx-3">|</span>
+      <span>STATUS: <span class="text-green-500">ACTIVE</span></span>
+      <span class="mx-3">|</span>
+      <span>18:44:34Z</span>
+    </div>
+    <div class="flex gap-1">
+      <button class="btn-industrial px-2 py-1 text-xs rounded">⛶</button>
+      <button class="btn-industrial px-2 py-1 text-xs rounded">⚙</button>
+    </div>
+  </header>
+
+  <div class="flex flex-1 overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-56 border-r border-[#262626] flex flex-col">
+      <!-- Search -->
+      <div class="p-3 border-b border-[#262626]">
+        <div class="panel rounded p-2">
+          <input type="text" placeholder="Search entities..." 
+            class="w-full bg-transparent text-sm focus:outline-none placeholder-[#525252]" />
+        </div>
+      </div>
+      
+      <!-- Filters -->
+      <div class="p-3 border-b border-[#262626]">
+        <div class="flex flex-wrap gap-1">
+          <button class="btn-industrial active px-2 py-1 text-[11px] rounded">ALL</button>
+          <button class="btn-industrial px-2 py-1 text-[11px] rounded">AIR</button>
+          <button class="btn-industrial px-2 py-1 text-[11px] rounded">SEA</button>
+          <button class="btn-industrial px-2 py-1 text-[11px] rounded">SPACE</button>
+        </div>
+      </div>
+      
+      <!-- Stats Panel -->
+      <div class="flex-1 p-3">
+        <div class="panel rounded p-3 mb-2">
+          <div class="text-[11px] text-[#737373] uppercase tracking-wide mb-2">Entity Count</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-[#1a1a1a] rounded p-2">
+              <div class="text-blue-400">50</div>
+              <div class="text-[#737373]">Flights</div>
+            </div>
+            <div class="bg-[#1a1a1a] rounded p-2">
+              <div class="text-orange-400">30</div>
+              <div class="text-[#737373]">Ships</div>
+            </div>
+            <div class="bg-[#1a1a1a] rounded p-2">
+              <div class="text-purple-400">20</div>
+              <div class="text-[#737373]">Sats</div>
+            </div>
+            <div class="bg-[#1a1a1a] rounded p-2">
+              <div class="text-red-400">23</div>
+              <div class="text-[#737373]">Events</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Intel Panel -->
+        <div class="panel panel-active rounded p-3">
+          <div class="text-[11px] text-[#737373] uppercase tracking-wide mb-2">Selected Entity</div>
+          <div class="bg-[#1a1a1a] rounded p-2 mb-2">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="w-2 h-2 bg-blue-400 rounded-full"></span>
+              <span class="text-xs text-blue-400">AIRCRAFT</span>
+            </div>
+            <div class="mono text-sm">EK7007</div>
+            <div class="text-xs text-[#737373]">Boeing 737-800</div>
+          </div>
+          <div class="bg-red-900/20 border border-red-900/50 rounded p-2 mb-2">
+            <div class="text-xs text-red-400">⚠ OFAC MATCH</div>
+          </div>
+          <div class="text-[10px] text-[#525252]">
+            <span class="text-[#737373]">Database:</span> 19,778 sanctions
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Map -->
+    <main class="flex-1 relative bg-[#0a0a0a]">
+      <!-- Grid background -->
+      <div class="absolute inset-0" style="background-image: linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px); background-size: 40px 40px;"></div>
+      
+      <!-- Entities -->
+      <div class="absolute inset-0">
+        <div class="entity-marker aircraft" style="top: 20%; left: 30%;"></div>
+        <div class="entity-marker aircraft" style="top: 25%; left: 35%;"></div>
+        <div class="entity-marker aircraft" style="top: 22%; left: 38%;"></div>
+        <div class="entity-marker ship" style="top: 60%; left: 20%;"></div>
+        <div class="entity-marker ship" style="top: 55%; left: 25%;"></div>
+        <div class="entity-marker satellite" style="top: 15%; left: 60%;"></div>
+        <div class="entity-marker satellite" style="top: 18%; left: 65%;"></div>
+        <div class="entity-marker fire" style="top: 70%; left: 70%;"></div>
+        <div class="entity-marker earthquake" style="top: 50%; left: 50%;"></div>
+      </div>
+      
+      <!-- Map Controls -->
+      <div class="absolute bottom-4 right-4 flex flex-col gap-1">
+        <button class="btn-industrial w-8 h-8 rounded flex items-center justify-center text-lg">+</button>
+        <button class="btn-industrial w-8 h-8 rounded flex items-center justify-center text-lg">−</button>
+        <button class="btn-industrial px-2 py-1 rounded text-[10px] mt-2">RESET</button>
+      </div>
+      
+      <!-- Status Bar -->
+      <div class="absolute bottom-0 left-0 right-0 h-8 bg-[#0a0a0a] border-t border-[#262626] flex items-center px-4 text-[10px] text-[#525252]">
+        <span>MAP: CartoDB Dark Matter</span>
+        <span class="mx-4">|</span>
+        <span>ZOOM: 3</span>
+        <span class="mx-4">|</span>
+        <span>CENTER: 0,0</span>
+        <span class="flex-1"></span>
+        <span>2000km scale</span>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

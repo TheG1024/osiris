@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIRIS - Glass Minimal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass-bg: rgba(15, 23, 42, 0.7);
+      --glass-border: rgba(148, 163, 184, 0.1);
+      --accent-cyan: #22d3ee;
+      --accent-cyan-dim: rgba(34, 211, 238, 0.1);
+      --text-primary: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      color: var(--text-primary);
+    }
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+    }
+    .glass-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+    }
+    .entity-marker {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .entity-marker:hover {
+      transform: scale(1.6);
+    }
+    .entity-marker.aircraft { background: #22d3ee; box-shadow: 0 0 15px #22d3ee; }
+    .entity-marker.ship { background: #f97316; box-shadow: 0 0 15px #f97316; }
+    .entity-marker.satellite { background: #a855f7; box-shadow: 0 0 15px #a855f7; }
+    .entity-marker.fire { background: #ef4444; box-shadow: 0 0 15px #ef4444; }
+    .entity-marker.earthquake { background: #eab308; box-shadow: 0 0 15px #eab308; }
+    .glow-text {
+      text-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+    }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .btn-glass {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .btn-glass:hover {
+      background: rgba(34, 211, 238, 0.1);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+    .btn-glass.active {
+      background: rgba(34, 211, 238, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+      border: 1px solid var(--glass-border);
+    }
+  </style>
+</head>
+<body class="h-screen overflow-hidden">
+  <!-- Floating Header -->
+  <header class="absolute top-0 left-0 right-0 z-50 p-4">
+    <div class="glass rounded-2xl px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <h1 class="text-xl font-semibold tracking-tight glow-text">OSIRIS</h1>
+        <span class="text-xs text-muted bg-white/5 px-2 py-1 rounded">REDUX</span>
+        <span class="flex items-center gap-1 text-xs text-emerald-400">
+          <span class="w-2 h-2 bg-emerald-400 rounded-full pulse"></span>
+          LIVE
+        </span>
+      </div>
+      <div class="flex items-center gap-6 text-sm text-muted">
+        <span><span class="text-cyan-400">123</span> entities</span>
+        <span><span class="text-cyan-400">TLE</span> active</span>
+        <span class="font-mono">18:44 UTC</span>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn-glass px-3 py-1.5 rounded-lg text-sm">Fullscreen</button>
+        <button class="btn-glass px-3 py-1.5 rounded-lg text-sm">Settings</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <div class="flex h-screen pt-20 px-4 pb-4 gap-4">
+    <!-- Sidebar - Left floating -->
+    <aside class="w-72 flex flex-col gap-4">
+      <!-- Search -->
+      <div class="glass rounded-2xl p-4">
+        <input type="text" placeholder="Search flights, ships, satellites..." 
+          class="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-400/50 text-white placeholder-white/30">
+      </div>
+      
+      <!-- Filters -->
+      <div class="glass rounded-2xl p-4">
+        <div class="flex flex-wrap gap-2">
+          <button class="btn-glass active px-3 py-1.5 rounded-lg text-xs">All</button>
+          <button class="btn-glass px-3 py-1.5 rounded-lg text-xs">Aircraft</button>
+          <button class="btn-glass px-3 py-1.5 rounded-lg text-xs">Maritime</button>
+          <button class="btn-glass px-3 py-1.5 rounded-lg text-xs">Satellites</button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 gap-2">
+        <div class="stat-card rounded-xl p-3">
+          <div class="text-xs text-muted">FLIGHTS</div>
+          <div class="text-2xl font-semibold text-cyan-400">50</div>
+        </div>
+        <div class="stat-card rounded-xl p-3">
+          <div class="text-xs text-muted">SHIPS</div>
+          <div class="text-2xl font-semibold text-orange-400">30</div>
+        </div>
+        <div class="stat-card rounded-xl p-3">
+          <div class="text-xs text-muted">SATELLITES</div>
+          <div class="text-2xl font-semibold text-purple-400">20</div>
+        </div>
+        <div class="stat-card rounded-xl p-3">
+          <div class="text-xs text-muted">EVENTS</div>
+          <div class="text-2xl font-semibold text-red-400">23</div>
+        </div>
+      </div>
+
+      <!-- Intel Panel -->
+      <div class="glass-card rounded-2xl p-4 flex-1">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-medium">Intelligence</h3>
+          <span class="text-xs text-muted">19.7K DB</span>
+        </div>
+        <div class="space-y-2">
+          <div class="bg-white/5 rounded-lg p-3 border border-white/5">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="w-2 h-2 bg-cyan-400 rounded-full"></span>
+              <span class="text-xs text-cyan-400">AIRCRAFT</span>
+            </div>
+            <div class="text-sm font-medium">EK7007</div>
+            <div class="text-xs text-muted">Boeing 737-800</div>
+          </div>
+          <div class="bg-red-500/10 rounded-lg p-3 border border-red-500/20">
+            <div class="text-xs text-red-400 mb-1">⚠ SANCTION MATCH</div>
+            <div class="text-xs text-muted">OFAC SDN List</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Map -->
+    <main class="flex-1 glass rounded-2xl relative overflow-hidden">
+      <!-- Map base with grid -->
+      <div class="absolute inset-0 bg-gradient-to-br from-slate-900 to-indigo-950">
+        <div class="opacity-30" style="background-image: radial-gradient(circle at center, rgba(34,211,238,0.1) 0%, transparent 70%);"></div>
+      </div>
+      
+      <!-- Entity markers -->
+      <div class="absolute inset-0">
+        <div class="entity-marker aircraft" style="top: 20%; left: 30%;"></div>
+        <div class="entity-marker aircraft" style="top: 25%; left: 35%;"></div>
+        <div class="entity-marker aircraft" style="top: 30%; left: 40%;"></div>
+        <div class="entity-marker ship" style="top: 60%; left: 20%;"></div>
+        <div class="entity-marker ship" style="top: 65%; left: 25%;"></div>
+        <div class="entity-marker satellite" style="top: 15%; left: 60%;"></div>
+        <div class="entity-marker satellite" style="top: 20%; left: 65%;"></div>
+        <div class="entity-marker fire" style="top: 70%; left: 70%;"></div>
+        <div class="entity-marker earthquake" style="top: 50%; left: 50%;"></div>
+      </div>
+      
+      <!-- Map controls -->
+      <div class="absolute bottom-4 right-4 glass rounded-lg p-2 flex flex-col gap-1">
+        <button class="btn-glass w-8 h-8 rounded">+</button>
+        <button class="btn-glass w-8 h-8 rounded">−</button>
+        <div class="border-t border-white/10 my-1"></div>
+        <button class="btn-glass px-2 py-1 rounded text-xs">Reset</button>
+      </div>
+      
+      <!-- Scale -->
+      <div class="absolute bottom-4 left-4 text-xs text-muted">
+        <span>2000km</span>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

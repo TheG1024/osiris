@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIRIS - Futuristic Radar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --radar-green: #00ffc8;
+      --radar-green-dim: rgba(0, 255, 200, 0.3);
+      --radar-bg: #030712;
+      --ring-color: #00ffc820;
+    }
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--radar-bg);
+      color: var(--radar-green);
+    }
+    .font-tech { font-family: 'Oxanium', sans-serif; }
+    
+    /* Radar sweep animation */
+    @keyframes sweep {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .radar-sweep {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, transparent 270deg, var(--radar-green-dim) 360deg);
+      animation: sweep 4s linear infinite;
+    }
+    .radar-ring {
+      border: 1px solid var(--ring-color);
+      border-radius: 50%;
+      position: absolute;
+    }
+    .glow {
+      filter: drop-shadow(0 0 8px var(--radar-green));
+    }
+    .entity-marker {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: var(--radar-green);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 0 10px var(--radar-green);
+    }
+    .entity-marker:hover {
+      transform: scale(2);
+      box-shadow: 0 0 20px var(--radar-green);
+    }
+    .entity-marker.aircraft { background: #00d4ff; box-shadow: 0 0 10px #00d4ff; }
+    .entity-marker.ship { background: #ff9500; box-shadow: 0 0 10px #ff9500; }
+    .entity-marker.satellite { background: #ff00aa; box-shadow: 0 0 10px #ff00aa; }
+    .entity-marker.fire { background: #ff3333; box-shadow: 0 0 10px #ff3333; }
+    .entity-marker.earthquake { background: #ffff00; box-shadow: 0 0 10px #ffff00; }
+    .btn-tech {
+      border: 1px solid var(--radar-green);
+      background: transparent;
+      color: var(--radar-green);
+      transition: all 0.2s;
+    }
+    .btn-tech:hover {
+      background: var(--radar-green);
+      color: #030712;
+    }
+    .panel-tech {
+      background: rgba(0, 255, 200, 0.03);
+      border: 1px solid var(--radar-green-dim);
+    }
+  </style>
+</head>
+<body class="h-screen overflow-hidden">
+  <!-- Header -->
+  <header class="h-14 border-b border-[#00ffc820] flex items-center justify-between px-6 bg-[#020810]">
+    <div class="flex items-center gap-4">
+      <div class="w-8 h-8 border-2 border-[#00ffc8] rounded flex items-center justify-center font-tech text-xl glow">O</div>
+      <div>
+        <h1 class="font-tech text-xl font-bold tracking-widest glow">OSIRIS</h1>
+        <div class="text-[10px] tracking-[0.3em] text-[#00ffc880]">SATELLITE INTELLIGENCE</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-6 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 bg-[#00ffc8] rounded-full animate-pulse"></span>
+        <span class="font-tech tracking-wider">LIVE</span>
+      </div>
+      <div class="font-tech text-lg"><span class="text-[#00ffc880]">◆</span> 123 <span class="text-[#00ffc850]">ENTITIES</span></div>
+      <div class="font-tech text-[#00ffc850]">TLE: ACTIVE</div>
+      <div class="font-tech">18:44:34</div>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn-tech px-3 py-1.5 text-xs font-tech tracking-wider rounded">⛶</button>
+      <button class="btn-tech px-3 py-1.5 text-xs font-tech tracking-wider rounded">⚙</button>
+    </div>
+  </header>
+
+  <div class="flex h-[calc(100vh-56px)]">
+    <!-- Sidebar -->
+    <aside class="w-60 border-r border-[#00ffc820] p-4 flex flex-col gap-3 bg-[#020810]">
+      <!-- Search -->
+      <div class="panel-tech rounded-lg p-3">
+        <input type="text" placeholder="Search database..." 
+          class="w-full bg-transparent text-sm focus:outline-none placeholder-[#00ffc840] text-[#00ffc8] font-tech">
+      </div>
+      
+      <!-- Filter Buttons -->
+      <div class="flex flex-wrap gap-1">
+        <button class="btn-tech px-2 py-1 text-xs font-tech rounded">ALL</button>
+        <button class="btn-tech px-2 py-1 text-xs font-tech rounded">AIR</button>
+        <button class="btn-tech px-2 py-1 text-xs font-tech rounded">SEA</button>
+        <button class="btn-tech px-2 py-1 text-xs font-tech rounded">SPACE</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="panel-tech rounded-lg p-3">
+        <div class="font-tech text-xs tracking-wider mb-2 text-[#00ffc860]">DETECTIONS</div>
+        <div class="space-y-1">
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-[#00ffc860]">FLIGHTS</span>
+            <span class="font-tech text-lg">50</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-[#00ffc860]">VESSELS</span>
+            <span class="font-tech text-lg">30</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-[#00ffc860]">SATELLITES</span>
+            <span class="font-tech text-lg">20</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-[#00ffc860]">EVENTS</span>
+            <span class="font-tech text-lg">23</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intel Panel -->
+      <div class="panel-tech rounded-lg p-3 flex-1">
+        <div class="font-tech text-xs tracking-wider mb-2 text-[#00ffc860]">ANALYSIS</div>
+        <div class="bg-[#00ffc810] rounded p-2 mb-2">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="w-2 h-2 bg-[#00d4ff] rounded-full"></span>
+            <span class="text-xs text-[#00d4ff] font-tech">AIRCRAFT</span>
+          </div>
+          <div class="font-tech text-sm">EK7007</div>
+          <div class="text-xs text-[#00ffc860]">Boeing 737-800</div>
+        </div>
+        <div class="bg-red-500/10 border border-red-500/30 rounded p-2">
+          <div class="text-xs text-red-400 font-tech">⚠ THREAT DETECTED</div>
+          <div class="text-[10px] text-[#00ffc860]">OFAC SDN Match</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Radar Map -->
+    <main class="flex-1 relative bg-[#030712] flex items-center justify-center overflow-hidden">
+      <!-- Radar circles -->
+      <div class="relative w-[500px] h-[500px]">
+        <div class="radar-ring" style="width: 100%; height: 100%; top: 0; left: 0;"></div>
+        <div class="radar-ring" style="width: 75%; height: 75%; top: 12.5%; left: 12.5%;"></div>
+        <div class="radar-ring" style="width: 50%; height: 50%; top: 25%; left: 25%;"></div>
+        <div class="radar-ring" style="width: 25%; height: 25%; top: 37.5%; left: 37.5%;"></div>
+        
+        <!-- Sweep line (visual only) -->
+        <div class="absolute w-[1px] h-full bg-gradient-to-b from-transparent via-[#00ffc8] to-transparent left-1/2 origin-center" style="opacity: 0.3;"></div>
+        
+        <!-- Crosshairs -->
+        <div class="absolute w-full h-[1px] bg-[#00ffc840] left-0 top-1/2"></div>
+        <div class="absolute h-full w-[1px] bg-[#00ffc840] top-0 left-1/2"></div>
+        
+        <!-- Entities -->
+        <div class="entity-marker aircraft" style="top: 25%; left: 35%;" title="EK7007"></div>
+        <div class="entity-marker aircraft" style="top: 30%; left: 40%;"></div>
+        <div class="entity-marker aircraft" style="top: 35%; left: 30%;"></div>
+        <div class="entity-marker ship" style="top: 65%; left: 25%;"></div>
+        <div class="entity-marker ship" style="top: 60%; left: 20%;"></div>
+        <div class="entity-marker satellite" style="top: 20%; left: 65%;"></div>
+        <div class="entity-marker satellite" style="top: 25%; left: 70%;"></div>
+        <div class="entity-marker fire" style="top: 75%; left: 75%;"></div>
+        <div class="entity-marker earthquake" style="top: 50%; left: 50%;"></div>
+      </div>
+      
+      <!-- Map Controls -->
+      <div class="absolute bottom-4 right-4 flex flex-col gap-1">
+        <button class="btn-tech w-8 h-8 font-tech rounded flex items-center justify-center">+</button>
+        <button class="btn-tech w-8 h-8 font-tech rounded flex items-center justify-center">−</button>
+        <button class="btn-tech px-2 py-1 font-tech rounded text-xs mt-2">RESET</button>
+      </div>
+      
+      <!-- Scale -->
+      <div class="absolute bottom-4 left-4 font-tech text-xs text-[#00ffc850]">
+        <span>2000 KM</span>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

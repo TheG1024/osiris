@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIRIS - Cyberpunk HUD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cyan: #00f5ff;
+      --cyan-dim: rgba(0, 245, 255, 0.3);
+      --cyan-soft: rgba(0, 245, 255, 0.1);
+      --cyan-glow: rgba(0, 245, 255, 0.4);
+      --navy-deep: #0a0e27;
+      --navy-mid: #1a1f3a;
+      --navy-light: #0f1428;
+      --text-light: #8bcfff;
+      --text-white: #ffffff;
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      font-family: 'JetBrains Mono', monospace;
+      background: linear-gradient(135deg, var(--navy-deep), var(--navy-mid), var(--navy-light));
+      color: var(--cyan);
+      min-height: 100vh;
+    }
+    
+    .font-display { font-family: 'Orbitron', sans-serif; }
+    .uppercase { text-transform: uppercase; }
+    
+    /* Grid background */
+    .grid-bg {
+      background-image: 
+        linear-gradient(rgba(0, 245, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 245, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    
+    /* Corner accents */
+    .corner-accent {
+      position: relative;
+    }
+    .corner-accent::before, .corner-accent::after {
+      content: '';
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--cyan);
+      border-radius: 8px;
+    }
+    .corner-accent::before { top: -3px; left: -3px; border-right: none; border-bottom: none; }
+    .corner-accent::after { bottom: -3px; right: -3px; border-left: none; border-top: none; }
+    
+    /* Glow effects */
+    .glow-text { text-shadow: 0 0 20px var(--cyan); }
+    .glow-box {
+      box-shadow: 0 0 30px var(--cyan-dim), inset 0 0 30px var(--cyan-soft);
+    }
+    
+    /* Pulse animation */
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px var(--cyan)); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 0 40px var(--cyan)); }
+    }
+    .animate-pulse-slow { animation: pulse 2s ease-in-out infinite; }
+    
+    /* Scan line */
+    @keyframes scan {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    .scan-line::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(0,245,255,0.1), transparent);
+      animation: scan 3s linear infinite;
+    }
+    
+    /* Shimmer button */
+    .btn-cyber {
+      position: relative;
+      overflow: hidden;
+      border: 2px solid var(--cyan);
+      background: transparent;
+      color: var(--cyan);
+      transition: all 0.3s;
+    }
+    .btn-cyber::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0,245,255,0.3), transparent);
+      transition: left 0.5s;
+    }
+    .btn-cyber:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 30px var(--cyan-glow);
+    }
+    .btn-cyber:hover::before { left: 100%; }
+    .btn-cyber.active {
+      background: var(--cyan);
+      color: var(--navy-deep);
+    }
+    
+    /* Entity markers */
+    .entity-marker {
+      width: 14px;
+      height: 14px;
+      transform: rotate(45deg);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .entity-marker:hover {
+      transform: rotate(45deg) scale(1.8);
+    }
+    .entity-marker.aircraft { background: #00d4ff; box-shadow: 0 0 20px #00d4ff; }
+    .entity-marker.ship { background: #ff6b00; box-shadow: 0 0 20px #ff6b00; }
+    .entity-marker.satellite { background: #ff00ff; box-shadow: 0 0 20px #ff00ff; }
+    .entity-marker.fire { background: #ff3333; box-shadow: 0 0 20px #ff3333; }
+    .entity-marker.earthquake { background: #ffff00; box-shadow: 0 0 20px #ffff00; }
+    
+    /* Input focus */
+    input:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 30px var(--cyan-dim);
+    }
+    
+    /* Stats cards */
+    .stat-card {
+      background: linear-gradient(135deg, rgba(26, 31, 58, 0.8), rgba(15, 20, 40, 0.9));
+      border: 1px solid var(--cyan-dim);
+    }
+  </style>
+</head>
+<body class="h-screen overflow-hidden grid-bg">
+  <!-- HEADER -->
+  <header class="h-16 border-b border-[#00f5ff30] flex items-center justify-between px-6 bg-[#0a0e2780]">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 border-2 border-[#00f5ff] rounded flex items-center justify-center glow-text animate-pulse-slow">
+        <span class="font-display text-xl font-bold">O</span>
+      </div>
+      <div>
+        <h1 class="font-display text-xl font-bold tracking-widest glow-text">OSIRIS</h1>
+        <span class="text-[10px] text-[#8bcfff] uppercase tracking-widest">● REDUX LIVE</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-6 text-sm">
+      <div><span class="text-[#8bcfff]">ENTITIES:</span> <span class="font-display text-lg">123</span></div>
+      <div><span class="text-[#8bcfff]">TLE:</span> <span class="text-green-400">ACTIVE</span></div>
+      <div class="font-mono text-xs">18:44:34 UTC</div>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn-cyber px-3 py-1.5 text-xs uppercase tracking-wider">⛶ FULL</button>
+      <button class="btn-cyber px-3 py-1.5 text-xs uppercase tracking-wider">⚙</button>
+    </div>
+  </header>
+
+  <div class="flex h-[calc(100vh-64px)]">
+    <!-- SIDEBAR -->
+    <aside class="w-72 border-r border-[#00f5ff30] p-4 flex flex-col gap-4 bg-[#0a0e2780]">
+      
+      <!-- Search -->
+      <div class="glow-box bg-[#1a1f3a] rounded-xl p-4">
+        <h3 class="font-display text-xs uppercase tracking-widest mb-3 text-[#8bcfff]">◈ INTELLIGENCE SEARCH</h3>
+        <input type="text" placeholder="Search flights, ships, satellites..." 
+          class="w-full bg-[#0a0e27] border border-[#00f5ff30] rounded-lg px-4 py-2.5 text-sm text-[#00f5ff] placeholder-[#00f5ff40]">
+      </div>
+      
+      <!-- Filters -->
+      <div class="flex flex-wrap gap-2">
+        <button class="btn-cyber active px-3 py-1.5 text-xs uppercase tracking-wider">ALL</button>
+        <button class="btn-cyber px-3 py-1.5 text-xs uppercase tracking-wider">AIR</button>
+        <button class="btn-cyber px-3 py-1.5 text-xs uppercase tracking-wider">SEA</button>
+        <button class="btn-cyber px-3 py-1.5 text-xs uppercase tracking-wider">SPACE</button>
+        <button class="btn-cyber px-3 py-1.5 text-xs uppercase tracking-wider">ALERT</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="glow-box bg-[#1a1f3a] rounded-xl p-4">
+        <h3 class="font-display text-xs uppercase tracking-widest mb-3 text-[#8bcfff]">◈ STATISTICS</h3>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="stat-card rounded-lg p-3 text-center">
+            <div class="text-2xl font-display text-[#00d4ff]">50</div>
+            <div class="text-[10px] uppercase text-[#8bcfff]">FLIGHTS</div>
+          </div>
+          <div class="stat-card rounded-lg p-3 text-center">
+            <div class="text-2xl font-display text-[#ff6b00]">30</div>
+            <div class="text-[10px] uppercase text-[#8bcfff]">SHIPS</div>
+          </div>
+          <div class="stat-card rounded-lg p-3 text-center">
+            <div class="text-2xl font-display text-[#ff00ff]">20</div>
+            <div class="text-[10px] uppercase text-[#8bcfff]">SATS</div>
+          </div>
+          <div class="stat-card rounded-lg p-3 text-center">
+            <div class="text-2xl font-display text-[#ff3333]">23</div>
+            <div class="text-[10px] uppercase text-[#8bcfff]">EVENTS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intel Panel -->
+      <div class="glow-box bg-[#1a1f3a] rounded-xl p-4 flex-1 corner-accent">
+        <h3 class="font-display text-xs uppercase tracking-widest mb-3 text-[#8bcfff]">◈ INTELLIGENCE</h3>
+        
+        <div class="space-y-3">
+          <div class="bg-[#0a0e27] rounded-lg p-3 border border-[#00f5ff20]">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="w-2 h-2 bg-[#00d4ff] rounded-full animate-pulse-slow"></span>
+              <span class="text-xs text-[#00d4ff] uppercase">Aircraft</span>
+            </div>
+            <div class="font-display text-lg glow-text">EK7007</div>
+            <div class="text-xs text-[#8bcfff80]">Boeing 737-800</div>
+          </div>
+          
+          <div class="bg-[#ff333320] rounded-lg p-3 border border-[#ff333350] relative overflow-hidden">
+            <div class="scan-line"></div>
+            <div class="text-xs text-red-400 uppercase glow-text">⚠ ofac match</div>
+            <div class="text-[10px] text-[#8bcfff80]">SDN List Detected</div>
+          </div>
+          
+          <div class="bg-[#0a0e27] rounded-lg p-3 border border-[#00f5ff20]">
+            <div class="text-xs text-[#8bcfff] uppercase mb-1">Database</div>
+            <div class="font-display text-lg">19,778</div>
+            <div class="text-[10px] text-[#8bcfff80]">OFAC • EU • UN sanctions</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAP -->
+    <main class="flex-1 relative bg-[#050a15]">
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="relative w-full h-full max-w-4xl max-h-[600px]">
+          <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(circle at center, rgba(0,245,255,0.1) 0%, transparent 70%);"></div>
+          
+          <!-- Entity markers -->
+          <div class="entity-marker aircraft" style="top: 20%; left: 30%;"></div>
+          <div class="entity-marker aircraft" style="top: 25%; left: 35%;"></div>
+          <div class="entity-marker aircraft" style="top: 30%; left: 40%;"></div>
+          <div class="entity-marker ship" style="top: 60%; left: 20%;"></div>
+          <div class="entity-marker ship" style="top: 65%; left: 25%;"></div>
+          <div class="entity-marker satellite" style="top: 15%; left: 60%;"></div>
+          <div class="entity-marker satellite" style="top: 20%; left: 65%;"></div>
+          <div class="entity-marker fire" style="top: 70%; left: 70%;"></div>
+          <div class="entity-marker earthquake" style="top: 50%; left: 50%;"></div>
+        </div>
+      </div>
+      
+      <!-- Controls -->
+      <div class="absolute bottom-4 right-4 flex flex-col gap-2">
+        <button class="btn-cyber w-10 h-10 text-xl font-display">+</button>
+        <button class="btn-cyber w-10 h-10 text-xl font-display">−</button>
+        <button class="btn-cyber px-3 py-2 text-xs uppercase tracking-wider mt-2">⟲ RESET</button>
+      </div>
+      
+      <div class="absolute bottom-4 left-4 text-xs text-[#8bcfff80] font-mono">
+        <span>◷ 2000km</span>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

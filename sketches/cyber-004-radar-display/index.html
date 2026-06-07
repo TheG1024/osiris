@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSIRIS - Radar Display</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cyan: #00f5ff;
+      --cyan-dim: rgba(0, 245, 255, 0.3);
+      --cyan-soft: rgba(0, 245, 255, 0.1);
+      --cyan-glow: rgba(0, 245, 255, 0.5);
+      --navy-deep: #0a0e27;
+      --navy-mid: #1a1f3a;
+      --text-light: #8bcfff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--navy-deep);
+      color: var(--cyan);
+    }
+    .font-display { font-family: 'Orbitron', sans-serif; }
+    .uppercase { text-transform: uppercase; }
+    .grid-bg {
+      background-image: linear-gradient(rgba(0, 245, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 245, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .glow-text { text-shadow: 0 0 20px var(--cyan); }
+    .glow-box { box-shadow: 0 0 20px var(--cyan-soft), 0 0 40px var(--cyan-dim); }
+    
+    @keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .radar-sweep {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 600px;
+      height: 600px;
+      margin-left: -300px;
+      margin-top: -300px;
+      background: conic-gradient(from 0deg, transparent 300deg, rgba(0,245,255,0.15) 340deg, rgba(0,245,255,0.3) 360deg);
+      border-radius: 50%;
+      animation: sweep 4s linear infinite;
+      pointer-events: none;
+    }
+    .radar-ring {
+      position: absolute;
+      border: 1px solid rgba(0, 245, 255, 0.1);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .radar-cross {
+      position: absolute;
+      background: rgba(0, 245, 255, 0.1);
+    }
+    .blip {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    .blip.aircraft { background: #00d4ff; box-shadow: 0 0 15px #00d4ff; }
+    .blip.ship { background: #ff6b00; box-shadow: 0 0 15px #ff6b00; }
+    .blip.satellite { background: #ff00ff; box-shadow: 0 0 15px #ff00ff; }
+    .blip.fire { background: #ff3333; box-shadow: 0 0 15px #ff3333; }
+    
+    .btn-radar {
+      border: 2px solid rgba(0, 245, 255, 0.5);
+      background: rgba(10, 14, 39, 0.8);
+      color: var(--cyan);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-radar:hover { border-color: var(--cyan); background: rgba(0, 245, 255, 0.1); }
+    .btn-radar.active { background: var(--cyan); color: var(--navy-deep); }
+    
+    input:focus { outline: none; border-color: var(--cyan); }
+  </style>
+</head>
+<body class="h-screen overflow-hidden grid-bg relative">
+  
+  <!-- RADAR SWEEP BACKGROUND -->
+  <div class="radar-sweep"></div>
+  
+  <!-- RADAR RINGS -->
+  <div class="radar-ring" style="width: 150px; height: 150px;"></div>
+  <div class="radar-ring" style="width: 300px; height: 300px;"></div>
+  <div class="radar-ring" style="width: 450px; height: 450px;"></div>
+  <div class="radar-ring" style="width: 600px; height: 600px;"></div>
+  
+  <!-- CROSSHAIRS -->
+  <div class="radar-cross" style="width: 1px; height: 600px; left: 50%; top: 0;"></div>
+  <div class="radar-cross" style="width: 600px; height: 1px; left: 0; top: 50%;"></div>
+  
+  <!-- BLIPS -->
+  <div class="blip aircraft" style="top: 25%; left: 35%;"></div>
+  <div class="blip aircraft" style="top: 30%; left: 40%;"></div>
+  <div class="blip aircraft" style="top: 35%; left: 45%;"></div>
+  <div class="blip ship" style="top: 55%; left: 20%;"></div>
+  <div class="blip ship" style="top: 60%; left: 25%;"></div>
+  <div class="blip satellite" style="top: 15%; left: 60%;"></div>
+  <div class="blip satellite" style="top: 20%; left: 65%;"></div>
+  <div class="blip fire" style="top: 65%; left: 70%;"></div>
+  <div class="blip fire" style="top: 70%; left: 75%;"></div>
+
+  <!-- CENTER MARKER -->
+  <div class="absolute top-1/2 left-1/2 w-4 h-4 -translate-x-1/2 -translate-y-1/2 border-2 border-[#00f5ff] rounded-full"></div>
+
+  <!-- TOP BAR -->
+  <header class="absolute top-0 left-0 right-0 h-14 bg-[#0a0e2790] border-b border-[#00f5ff20] flex items-center justify-between px-6 backdrop-blur-sm z-10">
+    <div class="flex items-center gap-4">
+      <div class="w-8 h-8 border-2 border-[#00f5ff] rounded flex items-center justify-center glow-text">
+        <span class="font-display text-lg font-bold">O</span>
+      </div>
+      <div>
+        <h1 class="font-display text-lg font-bold tracking-wider glow-text">OSIRIS</h1>
+        <span class="text-[8px] text-[#8bcfff] uppercase tracking-widest">Intelligence Platform</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-6">
+      <div class="text-sm"><span class="text-[#8bcfff]">SCAN:</span> <span class="font-display">ACTIVE</span></div>
+      <div class="text-sm"><span class="text-[#8bcfff]">UNITS:</span> <span class="font-display">123</span></div>
+      <input type="text" placeholder="Search..." 
+        class="bg-[#0a0e27] border border-[#00f5ff30] rounded px-3 py-1.5 text-xs w-40 text-[#00f5ff] placeholder-[#00f5ff40]">
+    </div>
+  </header>
+
+  <!-- FLOATING CONTROLS -->
+  <aside class="absolute top-20 left-4 w-48 z-10">
+    <div class="bg-[#0a0e27e0] border border-[#00f5ff30] rounded-lg p-3 backdrop-blur-sm">
+      <div class="text-[10px] text-[#8bcfff] uppercase tracking-wider mb-2">Filter</div>
+      <div class="grid grid-cols-2 gap-1">
+        <button class="btn-radar active px-2 py-1 text-[10px] uppercase">All</button>
+        <button class="btn-radar px-2 py-1 text-[10px] uppercase">Air</button>
+        <button class="btn-radar px-2 py-1 text-[10px] uppercase">Sea</button>
+        <button class="btn-radar px-2 py-1 text-[10px] uppercase">Sat</button>
+      </div>
+    </div>
+    
+    <div class="bg-[#0a0e27e0] border border-[#00f5ff30] rounded-lg p-3 mt-2 backdrop-blur-sm">
+      <div class="text-[10px] text-[#8bcfff] uppercase tracking-wider mb-2">Contacts</div>
+      <div class="space-y-1 text-[10px]">
+        <div class="flex justify-between"><span class="text-[#8bcfff]">Flight</span><span class="text-[#00d4ff]">50</span></div>
+        <div class="flex justify-between"><span class="text-[#8bcfff]">Vessel</span><span class="text-[#ff6b00]">30</span></div>
+        <div class="flex justify-between"><span class="text-[#8bcfff]">Orbit</span><span class="text-[#ff00ff]">20</span></div>
+        <div class="flex justify-between"><span class="text-[#8bcfff]">Event</span><span class="text-[#ff3333]">23</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- INTEL PANEL -->
+  <aside class="absolute top-20 right-4 w-56 z-10">
+    <div class="bg-[#0a0e27e0] border border-[#00f5ff30] rounded-lg p-3 backdrop-blur-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-display text-xs uppercase tracking-wider">Target Lock</div>
+        <span class="text-[10px] text-[#8bcfff60]">◉ TRACKING</span>
+      </div>
+      
+      <div class="bg-[#0a0e27] rounded p-2 mb-2 border border-[#00d4ff30]">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="w-2 h-2 bg-[#00d4ff] rounded-full"></span>
+          <span class="text-xs text-[#00d4ff] uppercase">Aircraft</span>
+        </div>
+        <div class="font-display text-lg glow-text">EK7007</div>
+        <div class="text-[10px] text-[#8bcfff80]">Boeing 737-800</div>
+      </div>
+      
+      <div class="bg-[#ff333320] rounded p-2 mb-2 border border-[#ff333350]">
+        <div class="text-[10px] text-red-400 uppercase">⚠ Threat ID</div>
+        <div class="text-[10px] text-[#8bcfff80]">OFAC Match</div>
+      </div>
+      
+      <div class="flex justify-between text-[10px]">
+        <span class="text-[#8bcfff]">DB:</span>
+        <span class="font-display">19,778</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- SCALE -->
+  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-[#8bcfff80] z-10">
+    <span class="font-display">◇</span> 2000km
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="absolute bottom-4 right-4 flex flex-col gap-1 z-10">
+    <button class="btn-radar w-8 h-8 text-sm font-display">+</button>
+    <button class="btn-radar w-8 h-8 text-sm font-display">−</button>
+  </div>
+</body>
+</html>

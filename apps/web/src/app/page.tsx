@@ -4,7 +4,9 @@ import { useEffect, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEntityStore } from '@/stores/entityStore';
+import { useThemeStore } from '@/stores/themeStore';
 import { osirisApi } from '@/lib/api-client';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { 
   Layers, 
   BarChart3, 
@@ -78,6 +80,14 @@ export default function Home() {
   const [mouseCoords, setMouseCoords] = useState({ lat: 0, lng: 0 });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const { theme } = useThemeStore();
+
+  // Initialize theme on mount
+  useEffect(() => {
+    if (typeof document !== 'undefined' && theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }, [theme]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Update clock
@@ -261,6 +271,11 @@ export default function Home() {
 
         {/* Right: Clock & Controls */}
         <div className="flex items-center gap-3">
+          {/* Theme Switcher */}
+          <div className="hidden md:block">
+            <ThemeSwitcher />
+          </div>
+
           {/* UTC Clock */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-osiris-surface/60 border border-osiris-border/50">
             <Clock size={12} className="text-osiris-text-muted" />
