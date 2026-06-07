@@ -272,9 +272,7 @@ export default function Home() {
         {/* Right: Clock & Controls */}
         <div className="flex items-center gap-3">
           {/* Theme Switcher */}
-          <div className="hidden md:block">
-            <ThemeSwitcher />
-          </div>
+          <ThemeSwitcher />
 
           {/* UTC Clock */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-osiris-surface/60 border border-osiris-border/50">
