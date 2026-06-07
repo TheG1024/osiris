@@ -60,6 +60,8 @@ const OsirisMap = dynamic(() => import('@/components/OsirisMap'), {
 const LiveAlerts = dynamic(() => import('@/components/LiveAlerts'), { ssr: false });
 const LayerPanel = dynamic(() => import('@/components/LayerPanel'), { ssr: false });
 const OsintPanel = dynamic(() => import('@/components/OsintPanel'), { ssr: false });
+const MarketsPanel = dynamic(() => import('@/components/MarketsPanel'), { ssr: false });
+const SupplyPanel = dynamic(() => import('@/components/SupplyPanel'), { ssr: false });
 
 type Panel = 'alerts' | 'layers' | 'intel' | 'markets' | 'scm' | 'search' | null;
 
@@ -398,19 +400,7 @@ export default function Home() {
                       exit={{ opacity: 0, y: -10 }}
                       className="h-full"
                     >
-                      <div className="flex items-center justify-center h-full text-osiris-text-muted">
-                        <div className="text-center p-8">
-                          <div className="relative mx-auto w-16 h-16 mb-4">
-                            <div className="absolute inset-0 border border-osiris-accent/20 rounded-full" />
-                            <div className="absolute inset-2 border border-osiris-accent/30 rounded-full animate-ping opacity-50" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <BarChart3 size={24} className="text-osiris-text-muted" />
-                            </div>
-                          </div>
-                          <p className="text-sm font-mono uppercase tracking-wider text-osiris-text-dim">Markets Panel</p>
-                          <p className="text-xs text-osiris-text-faint mt-2">Integration coming soon</p>
-                        </div>
-                      </div>
+                      <MarketsPanel />
                     </motion.div>
                   )}
                   {activePanel === 'scm' && (
@@ -421,19 +411,7 @@ export default function Home() {
                       exit={{ opacity: 0, y: -10 }}
                       className="h-full"
                     >
-                      <div className="flex items-center justify-center h-full text-osiris-text-muted">
-                        <div className="text-center p-8">
-                          <div className="relative mx-auto w-16 h-16 mb-4">
-                            <div className="absolute inset-0 border border-osiris-accent/20 rounded-full" />
-                            <div className="absolute inset-2 border border-osiris-accent/30 rounded-full animate-pulse" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <MapPinned size={24} className="text-osiris-text-muted" />
-                            </div>
-                          </div>
-                          <p className="text-sm font-mono uppercase tracking-wider text-osiris-text-dim">Supply Chain</p>
-                          <p className="text-xs text-osiris-text-faint mt-2">Integration coming soon</p>
-                        </div>
-                      </div>
+                      <SupplyPanel />
                     </motion.div>
                   )}
                   {!activePanel && (
