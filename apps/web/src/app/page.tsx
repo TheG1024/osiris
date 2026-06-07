@@ -110,28 +110,8 @@ export default function Home() {
         setEntities('event', [...fires, ...earthquakes]);
         console.log('[Page] Set events:', [...fires, ...earthquakes].length);
         
-        const newAlerts = [
-          ...(fires.map((f: any) => ({
-            id: `fire-${Date.now()}-${Math.random()}`,
-            type: 'fire' as const,
-            severity: 'high' as const,
-            title: 'Fire Detected',
-            description: f.description || 'Active fire hotspot detected',
-            location: { lat: f.lat || 0, lon: f.lon || 0 },
-            source: 'OSIRIS',
-            timestamp: Date.now(),
-          }))),
-          ...(earthquakes.map((e: any) => ({
-            id: `eq-${Date.now()}-${Math.random()}`,
-            type: 'earthquake' as const,
-            severity: 'medium' as const,
-            title: `M ${e.magnitude || 4.0} Earthquake`,
-            description: e.description || 'Seismic activity detected',
-            location: { lat: e.lat || 0, lon: e.lon || 0 },
-            source: 'USGS',
-            timestamp: Date.now() - 3600000,
-          }))),
-        ];
+        const newAlerts = [];
+        // ... temporarily disabled to debug
         setAlerts(newAlerts);
         setWsConnected(true);
       } catch (error) {
