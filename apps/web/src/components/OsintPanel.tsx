@@ -21,6 +21,13 @@ import clsx from 'clsx';
 
 interface OsintPanelProps {
   onSelectResult?: (result: unknown) => void;
+  intelResults?: any;
+  isLoadingIntel?: boolean;
+  selectedEntity?: {
+    type: string;
+    id: string;
+    data?: Record<string, any>;
+  } | null;
 }
 
 interface SearchResult {
@@ -34,7 +41,12 @@ interface SearchResult {
   confidence?: number;
 }
 
-const _OsintPanel = memo(function OsintPanel({ onSelectResult }: OsintPanelProps) {
+const _OsintPanel = memo(function OsintPanel({ 
+  onSelectResult,
+  intelResults,
+  isLoadingIntel,
+  selectedEntity,
+}: OsintPanelProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -113,7 +125,82 @@ const _OsintPanel = memo(function OsintPanel({ onSelectResult }: OsintPanelProps
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
+      {/* INTELLIGENCE RESULTS - When entity is selected */}
+      {selectedEntity && (
+        <div className="p-3 border-b border-osiris-accent/20 bg-osiris-surface/50">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Shield size={16} className="text-osiris-accent" />
+              <span className="font-mono text-xs text-osiris-accent uppercase tracking-wider">
+                Entity Intel
+              </span>
+            </div>
+          </div>
+          
+          {/* Selected Entity Info */}
+          <div className="mb-3 p-2 rounded bg-osiris-bg-deep border border-osiris-border/30">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-osiris-text-dim">Type:</span>
+              <span className="text-xs font-mono text-osiris-text uppercase">
+                {selectedEntity.type}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-osiris-text-dim">ID:</span>
+              <span className="text-sm font-mono text-osiris-accent">
+                {selectedEntity.id}
+              </span>
+            </div>
+          </div>
+          
+          {/* Loading or Results */}
+          {isLoadingIntel ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="w-6 h-6 border-2 border-osiris-accent/30 border-t-osiris-accent rounded-full animate-spin" />
+              <span className="ml-2 text-xs text-osiris-text-dim">Scanning intelligence sources...</span>
+            </div>
+          ) : intelResults ? (
+            <div className="space-y-2">
+              {/* Links to sanctions/Wikidata */}
+              {intelResults.links?.length > 0 ? (
+                <div className="p-2 rounded bg-red-900/20 border border-red-500/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield size={14} className="text-red-500" />
+                    <span className="text-xs font-mono text-red-400 uppercase">
+                      {intelResults.links.length} Match{intelResults.links.length > 1 ? 'es' : ''} Found
+                    </span>
+                  </div>
+                  {intelResults.links.map((link: any, idx: number) => (
+                    <div key={idx} className="text-xs text-osiris-text-dim ml-4">
+                      → {link.source} → {link.target} ({link.type})
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-2 rounded bg-green-900/20 border border-green-500/30">
+                  <div className="flex items-center gap-2">
+                    <Shield size={14} className="text-green-500" />
+                    <span className="text-xs font-mono text-green-400">
+                      No sanctions matches found
+                    </span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Sanctions Index Info */}
+              <div className="text-xs text-osiris-text-faint font-mono">
+                Sanctions DB: {intelResults.sanctions_index_size?.toLocaleString() || 0} entries
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-osiris-text-dim">
+              Select an entity on the map to run intelligence lookup
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Search Header */}
       <div className="p-3 border-b border-green-500/20 bg-gray-900/50">
         <div className="flex items-center gap-2 mb-3">
           <Search className="text-green-400" size={18} />

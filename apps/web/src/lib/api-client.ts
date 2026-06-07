@@ -58,6 +58,23 @@ class OsirisAPIClient {
     return this.fetch<{ earthquakes: any[] }>('/api/v1/earthquakes', params);
   }
 
+  // Entity resolution / intelligence lookup
+  async resolveEntity(type: string, id: string, props?: Record<string, string>) {
+    const params = new URLSearchParams({ type, id });
+    if (props) {
+      if (props.registration) params.set('registration', props.registration);
+      if (props.model) params.set('model', props.model);
+      if (props.icao24) params.set('icao24', props.icao24);
+    }
+    return this.fetch<{
+      nodes: Array<{ id: string; label: string; type: string; data: Record<string, any> }>;
+      links: Array<{ source: string; target: string; type: string }>;
+      entity: { type: string; id: string };
+      sanctions_index_size: number;
+      timestamp: string;
+    }>(`/api/resolve?${params.toString()}`);
+  }
+
   // Batch fetch for initial load
   async fetchAllData() {
     const [flights, ships, satellites, fires, earthquakes] = await Promise.allSettled([

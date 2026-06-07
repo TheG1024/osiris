@@ -101,36 +101,20 @@ export default function Home() {
         const fires = Array.isArray(data.fires) ? data.fires : [];
         const earthquakes = Array.isArray(data.earthquakes) ? data.earthquakes : [];
         
-        try {
-          console.log('[Page] Setting entity arrays...');
-          // Use setTimeout to defer state updates to next tick for React to render
-          setTimeout(() => {
-            setEntities('aircraft', flights);
-            console.log('[Page] Set flights:', flights.length);
-          }, 0);
-          setTimeout(() => {
-            setEntities('ship', ships);
-            console.log('[Page] Set ships:', ships.length);
-          }, 0);
-          setTimeout(() => {
-            setEntities('satellite', satellites);
-            console.log('[Page] Set satellites:', satellites.length);
-          }, 0);
-          setTimeout(() => {
-            setEntities('event', [...fires, ...earthquakes]);
-            console.log('[Page] Set events:', [...fires, ...earthquakes].length);
-          }, 0);
-          setTimeout(() => {
-            setAlerts([]);
-            setWsConnected(true);
-            console.log('[Page] All data loaded successfully');
-          }, 0);
-        } catch (e) {
-          console.error('[Page] Error setting entities:', e);
-        }
+        // Set entities immediately - React will batch these updates
+        setEntities('aircraft', flights);
+        setEntities('ship', ships);
+        setEntities('satellite', satellites);
+        setEntities('event', [...fires, ...earthquakes]);
+        setAlerts([]);
+        setWsConnected(true);
+        
+        console.log('[Page] All data loaded successfully');
+        
+        // Force a re-render by toggling isLoading
+        setTimeout(() => setIsLoading(false), 50);
       } catch (error) {
         console.error('[Page] Failed to load data:', error);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -147,9 +131,49 @@ export default function Home() {
     { id: 'scm', icon: MapPinned, label: 'Supply' },
   ];
 
-  const handleEntityClick = useCallback((entity: any) => {
+  // Entity resolution state
+  const [selectedEntityForIntel, setSelectedEntityForIntel] = useState<{
+    type: string;
+    id: string;
+    data?: Record<string, any>;
+  } | null>(null);
+  const [intelResults, setIntelResults] = useState<any>(null);
+  const [isLoadingIntel, setIsLoadingIntel] = useState(false);
+
+  const handleEntityClick = useCallback(async (entity: any) => {
     console.log('Entity clicked:', entity);
-  }, []);
+    
+    // Map entity type to resolve type
+    const typeMap: Record<string, string> = {
+      aircraft: 'aircraft',
+      ship: 'vessel',
+      satellite: 'aircraft',
+      event: 'person',
+    };
+    
+    const resolveType = typeMap[entity.type] || entity.type;
+    const entityId = entity.id || entity.callsign || entity.icao24 || entity.name;
+    
+    if (entityId) {
+      setSelectedEntityForIntel({ type: resolveType, id: entityId, data: entity });
+      setActivePanel('intel');
+      setIsLoadingIntel(true);
+      
+      try {
+        const results = await osirisApi.resolveEntity(resolveType, entityId, {
+          registration: entity.callsign || entity.registration,
+          model: entity.model,
+          icao24: entity.icao24,
+        });
+        setIntelResults(results);
+      } catch (e) {
+        console.error('Intel lookup failed:', e);
+        setIntelResults(null);
+      } finally {
+        setIsLoadingIntel(false);
+      }
+    }
+  }, [setActivePanel]);
 
   const handleMouseCoords = useCallback((coords: { lat: number; lng: number }) => {
     setMouseCoords(coords);
@@ -346,7 +370,11 @@ export default function Home() {
                       exit={{ opacity: 0, y: -10 }}
                       className="h-full"
                     >
-                      <OsintPanel />
+                      <OsintPanel 
+                        intelResults={intelResults}
+                        isLoadingIntel={isLoadingIntel}
+                        selectedEntity={selectedEntityForIntel}
+                      />
                     </motion.div>
                   )}
                   {activePanel === 'markets' && (
