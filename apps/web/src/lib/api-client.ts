@@ -1,7 +1,11 @@
 // OSIRIS API Client - Unified data fetching layer
 // Handles all data sources with caching, retry, and WebSocket support
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://osiris-2zpj.onrender.com';
+// Use relative URLs when running in same deployment (Next.js handles API routes)
+// Set NEXT_PUBLIC_API_URL for external API gateway (development)
+const API_BASE = typeof window !== 'undefined' && window.location?.origin 
+  ? '' 
+  : (process.env.NEXT_PUBLIC_API_URL || '');
 
 interface FetchOptions {
   cache?: RequestCache;
@@ -49,7 +53,9 @@ class OsirisAPIClient {
         const timeoutId = setTimeout(() => controller.abort(), timeout);
 
         const url = `${this.baseUrl}${endpoint}${params ? '?' + new URLSearchParams(params).toString() : ''}`;
-        const response = await fetch(url, {
+        // Use relative URL if baseUrl is empty (same-origin deployment)
+        const resolvedUrl = this.baseUrl ? url : `${endpoint}${params ? '?' + new URLSearchParams(params).toString() : ''}`;
+        const response = await fetch(resolvedUrl, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
