@@ -101,19 +101,25 @@ export default function Home() {
         const fires = Array.isArray(data.fires) ? data.fires : [];
         const earthquakes = Array.isArray(data.earthquakes) ? data.earthquakes : [];
         
-        setEntities('aircraft', flights);
-        console.log('[Page] Set flights:', flights.length);
-        setEntities('ship', ships);
-        console.log('[Page] Set ships:', ships.length);
-        setEntities('satellite', satellites);
-        console.log('[Page] Set satellites:', satellites.length);
-        setEntities('event', [...fires, ...earthquakes]);
-        console.log('[Page] Set events:', [...fires, ...earthquakes].length);
-        
-        const newAlerts = [];
-        // ... temporarily disabled to debug
-        setAlerts(newAlerts);
-        setWsConnected(true);
+        try {
+          console.log('[Page] Setting entity arrays...');
+          setEntities('aircraft', flights);
+          console.log('[Page] Set flights:', flights.length);
+          setEntities('ship', ships);
+          console.log('[Page] Set ships:', ships.length);
+          setEntities('satellite', satellites);
+          console.log('[Page] Set satellites:', satellites.length);
+          setEntities('event', [...fires, ...earthquakes]);
+          console.log('[Page] Set events:', [...fires, ...earthquakes].length);
+          
+          const newAlerts = [];
+          // ... temporarily disabled to debug
+          setAlerts(newAlerts);
+          setWsConnected(true);
+          console.log('[Page] All data loaded successfully');
+        } catch (e) {
+          console.error('[Page] Error setting entities:', e);
+        }
       } catch (error) {
         console.error('[Page] Failed to load data:', error);
       } finally {
