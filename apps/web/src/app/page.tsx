@@ -102,9 +102,13 @@ export default function Home() {
         const earthquakes = Array.isArray(data.earthquakes) ? data.earthquakes : [];
         
         setEntities('aircraft', flights);
+        console.log('[Page] Set flights:', flights.length);
         setEntities('ship', ships);
+        console.log('[Page] Set ships:', ships.length);
         setEntities('satellite', satellites);
+        console.log('[Page] Set satellites:', satellites.length);
         setEntities('event', [...fires, ...earthquakes]);
+        console.log('[Page] Set events:', [...fires, ...earthquakes].length);
         
         const newAlerts = [
           ...(fires.map((f: any) => ({
