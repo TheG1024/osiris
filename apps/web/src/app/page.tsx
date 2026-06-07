@@ -91,7 +91,9 @@ export default function Home() {
     const loadData = async () => {
       setIsLoading(true);
       try {
+        console.log('[Page] Starting data load...');
         const data = await osirisApi.fetchAllData();
+        console.log('[Page] Data received:', data);
         
         const flights = Array.isArray(data.flights) ? data.flights : [];
         const ships = Array.isArray(data.ships) ? data.ships : [];
@@ -129,7 +131,7 @@ export default function Home() {
         setAlerts(newAlerts);
         setWsConnected(true);
       } catch (error) {
-        console.error('Failed to load data:', error);
+        console.error('[Page] Failed to load data:', error);
       } finally {
         setIsLoading(false);
       }
