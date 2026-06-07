@@ -38,15 +38,17 @@ class OsirisAPIClient {
   }
 
   async fetch<T>(endpoint: string, params?: Record<string, string>, options: FetchOptions = {}): Promise<T> {
-    const { cache = 'force-cache', revalidate = 60, retry = 2, timeout = 10000 } = options;
+    const { cache = 'no-store', revalidate = 0, retry = 2, timeout = 10000 } = options;
     const key = this.getCacheKey(endpoint, params);
 
-    // Check memory cache first
-    if (options.revalidate && this.isCacheValid(key, options.revalidate * 1000)) {
+    // Check memory cache first (only if revalidate is set and cache is valid)
+    if (revalidate > 0 && this.isCacheValid(key, revalidate * 1000)) {
+      console.log(`[API] Cache hit for ${endpoint}`);
       return this.cache.get(key)!.data as T;
     }
 
     let lastError: Error | null = null;
+    console.log(`[API] Fetching ${endpoint} from server...`);
     for (let attempt = 0; attempt <= retry; attempt++) {
       try {
         const controller = new AbortController();
@@ -54,14 +56,16 @@ class OsirisAPIClient {
 
         const url = `${this.baseUrl}${endpoint}${params ? '?' + new URLSearchParams(params).toString() : ''}`;
         // Use relative URL if baseUrl is empty (same-origin deployment)
-        const resolvedUrl = this.baseUrl ? url : `${endpoint}${params ? '?' + new URLSearchParams(params).toString() : ''}`;
+        // Always use absolute path with leading slash for browser compatibility
+        const resolvedUrl = this.baseUrl ? url : `${endpoint.startsWith('/') ? endpoint : '/' + endpoint}${params ? '?' + new URLSearchParams(params).toString() : ''}`;
+        console.log(`[API] Request URL: ${resolvedUrl}`);
         const response = await fetch(resolvedUrl, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-          cache,
-          ...(revalidate ? { next: { revalidate } } : {}),
+          // Only add next config when in Next.js SSR context
+          ...(typeof window === 'undefined' && revalidate ? { next: { revalidate } } : {}),
           signal: controller.signal,
         });
 
