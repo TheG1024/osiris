@@ -103,20 +103,28 @@ export default function Home() {
         
         try {
           console.log('[Page] Setting entity arrays...');
-          setEntities('aircraft', flights);
-          console.log('[Page] Set flights:', flights.length);
-          setEntities('ship', ships);
-          console.log('[Page] Set ships:', ships.length);
-          setEntities('satellite', satellites);
-          console.log('[Page] Set satellites:', satellites.length);
-          setEntities('event', [...fires, ...earthquakes]);
-          console.log('[Page] Set events:', [...fires, ...earthquakes].length);
-          
-          const newAlerts = [];
-          // ... temporarily disabled to debug
-          setAlerts(newAlerts);
-          setWsConnected(true);
-          console.log('[Page] All data loaded successfully');
+          // Use setTimeout to defer state updates to next tick for React to render
+          setTimeout(() => {
+            setEntities('aircraft', flights);
+            console.log('[Page] Set flights:', flights.length);
+          }, 0);
+          setTimeout(() => {
+            setEntities('ship', ships);
+            console.log('[Page] Set ships:', ships.length);
+          }, 0);
+          setTimeout(() => {
+            setEntities('satellite', satellites);
+            console.log('[Page] Set satellites:', satellites.length);
+          }, 0);
+          setTimeout(() => {
+            setEntities('event', [...fires, ...earthquakes]);
+            console.log('[Page] Set events:', [...fires, ...earthquakes].length);
+          }, 0);
+          setTimeout(() => {
+            setAlerts([]);
+            setWsConnected(true);
+            console.log('[Page] All data loaded successfully');
+          }, 0);
         } catch (e) {
           console.error('[Page] Error setting entities:', e);
         }
