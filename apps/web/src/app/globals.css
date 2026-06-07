@@ -1,57 +1,77 @@
 /* Osiris Redux — Tactical Operations UI */
 /* Premium dark theme with glassmorphism, glows, and tactical aesthetics */
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════
    DESIGN TOKENS
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Core Backgrounds */
-  --osiris-bg: #030712;
-  --osiris-bg-deep: #020409;
-  --osiris-surface: #0c0f1a;
-  --osiris-surface-elevated: #111827;
-  --osiris-panel: rgba(3, 7, 18, 0.92);
+  /* Theme variables - fallback to cyberpunk default */
+  --theme-bg-primary: #0a0e27;
+  --theme-bg-secondary: rgba(10, 14, 39, 0.9);
+  --theme-bg-tertiary: #050a15;
+  --theme-accent: #00f5ff;
+  --theme-accent-soft: rgba(0, 245, 255, 0.1);
+  --theme-accent-dim: rgba(0, 245, 255, 0.3);
+  --theme-accent-glow: rgba(0, 245, 255, 0.4);
+  --theme-text-primary: #00f5ff;
+  --theme-text-secondary: #8bcfff;
+  --theme-text-muted: rgba(139, 207, 255, 0.6);
+  --theme-border: rgba(0, 245, 255, 0.3);
+  --theme-entity-aircraft: #00d4ff;
+  --theme-entity-ship: #ff6b00;
+  --theme-entity-satellite: #ff00ff;
+  --theme-entity-fire: #ff3333;
+  --theme-entity-earthquake: #ffff00;
+  --theme-font-display: 'Orbitron', sans-serif;
+  --theme-font-body: 'JetBrains Mono', monospace;
+  --theme-glow-text: 0 0 20px var(--theme-accent);
+  --theme-grid-size: 40px;
+  --theme-grid-opacity: 0.03;
+
+  /* Map osiris-* to theme variables for backward compatibility */
+  --osiris-bg: var(--theme-bg-primary);
+  --osiris-bg-deep: var(--theme-bg-tertiary);
+  --osiris-surface: var(--theme-bg-secondary);
+  --osiris-surface-elevated: var(--theme-bg-tertiary);
+  --osiris-panel: var(--theme-bg-secondary);
   
-  /* Borders */
-  --osiris-border: rgba(0, 255, 136, 0.12);
-  --osiris-border-active: rgba(0, 255, 136, 0.5);
-  --osiris-border-glow: rgba(0, 255, 136, 0.25);
+  --osiris-border: var(--theme-border);
+  --osiris-border-active: var(--theme-accent-dim);
+  --osiris-border-glow: var(--theme-accent-glow);
   
-  /* Primary Accent — Tactical Green */
-  --osiris-accent: #00ff88;
-  --osiris-accent-dim: #00cc6a;
-  --osiris-accent-bright: #66ffaa;
-  --osiris-accent-glow: rgba(0, 255, 136, 0.2);
-  --osiris-accent-glow-strong: rgba(0, 255, 136, 0.4);
+  --osiris-accent: var(--theme-accent);
+  --osiris-accent-dim: var(--theme-accent-dim);
+  --osiris-accent-bright: var(--theme-accent);
+  --osiris-accent-glow: var(--theme-accent-glow);
+  --osiris-accent-glow-strong: var(--theme-accent-glow);
   
-  /* Secondary Accents */
   --osiris-amber: #fbbf24;
   --osiris-amber-dim: #b45309;
   --osiris-amber-glow: rgba(251, 191, 36, 0.25);
   
   /* Status Colors */
-  --osiris-success: #00ff88;
+  --osiris-success: var(--theme-accent);
   --osiris-warning: #f59e0b;
   --osiris-danger: #ef4444;
   --osiris-critical: #dc2626;
   
-  /* Entity Colors */
-  --osiris-aircraft: #06b6d4;
-  --osiris-ship: #22d3ee;
-  --osiris-satellite: #f97316;
+  /* Entity Colors - use theme versions */
+  --osiris-aircraft: var(--theme-entity-aircraft);
+  --osiris-ship: var(--theme-entity-ship);
+  --osiris-satellite: var(--theme-entity-satellite);
   --osiris-weather: #a78bfa;
   --osiris-camera: #f43f5e;
-  --osiris-fire: #ef4444;
-  --osiris-earthquake: #f97316;
+  --osiris-fire: var(--theme-entity-fire);
+  --osiris-earthquake: var(--theme-entity-earthquake);
   
   /* Text */
   --osiris-text: #f5f5f4;
-  --osiris-text-dim: #a8a29e;
-  --osiris-text-muted: #78716c;
-  --osiris-text-faint: #57534e;
+  --osiris-text-dim: var(--theme-text-secondary);
+  --osiris-text-muted: var(--theme-text-muted);
+  --osiris-text-faint: var(--theme-text-muted);
   
   /* Grid & Effects */
   --osiris-grid: rgba(0, 255, 136, 0.03);
