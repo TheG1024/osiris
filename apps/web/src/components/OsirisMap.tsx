@@ -19,6 +19,7 @@ const ENTITY_COLORS = {
   aircraft: { color: '#06b6d4', glow: 'rgba(6, 182, 212, 0.5)', label: 'Aircraft' },
   ship: { color: '#22d3ee', glow: 'rgba(34, 211, 238, 0.5)', label: 'Ship' },
   satellite: { color: '#f97316', glow: 'rgba(249, 115, 22, 0.5)', label: 'Satellite' },
+  event: { color: '#ef4444', glow: 'rgba(239, 68, 68, 0.5)', label: 'Event' },
   camera: { color: '#f43f5e', glow: 'rgba(244, 63, 94, 0.5)', label: 'Camera' },
 };
 
@@ -76,7 +77,7 @@ export default function OsirisMap({ onEntityClick, onMouseCoords }: OsirisMapPro
     setViewState({ longitude: 20, latitude: 0, zoom: 2 });
   }, [setViewState]);
 
-  // Entity points
+  // Entity points - fix key mismatches between activeLayers and entityStore
   const getEntityPoints = () => {
     const points: Array<{lat: number; lon: number; id: string; type: string}> = [];
     
@@ -90,6 +91,19 @@ export default function OsirisMap({ onEntityClick, onMouseCoords }: OsirisMapPro
 
     if (activeLayers['satellites'] !== false) {
       (entities.satellite || []).forEach(e => points.push({ lat: e.lat, lon: e.lon, id: e.id, type: 'satellite' }));
+    }
+    
+    // Add events (fires + earthquakes)
+    if (activeLayers['fires'] !== false) {
+      (entities.event || []).filter(e => e.id.startsWith('FIRE')).forEach(e => 
+        points.push({ lat: e.lat, lon: e.lon, id: e.id, type: 'event' })
+      );
+    }
+    
+    if (activeLayers['earthquakes'] !== false) {
+      (entities.event || []).filter(e => e.id.startsWith('EQ')).forEach(e => 
+        points.push({ lat: e.lat, lon: e.lon, id: e.id, type: 'event' })
+      );
     }
     
     return points;
