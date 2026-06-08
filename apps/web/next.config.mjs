@@ -1,7 +1,15 @@
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Use Turbopack (default in Next 16)
-  // NOTE: Removed __dirname - it's not valid in ES modules and not needed for turbopack
+  turbopack: {
+    root: __dirname,
+  },
   
   // Transpile packages
   transpilePackages: ['maplibre-gl', 'react-map-gl'],
