@@ -3,9 +3,9 @@
 
 import { GeoJsonLayer } from '@deck.gl/layers';
 
-// Colors
-const DRAFT_FILL = [212, 175, 55, 30];
-const DRAFT_STROKE = [212, 175, 55, 255];
+// Colors - use Uint8Array for deck.gl v9
+const DRAFT_FILL: [number, number, number, number] = [212, 175, 55, 30];
+const DRAFT_STROKE: [number, number, number, number] = [212, 175, 55, 255];
 
 interface DrawLayerProps {
   features: any[];
@@ -28,7 +28,6 @@ export default function DrawLayer({ features, mode }: DrawLayerProps) {
       },
       filled: true,
       stroked: true,
-      filled: true,
       getFillColor: DRAFT_FILL,
       getLineColor: DRAFT_STROKE,
       getLineWidth: 2,

@@ -8,11 +8,11 @@ interface GeofenceLayersProps {
   zoom?: number;
 }
 
-// Colors
-const ACTIVE_FILL = [212, 175, 55, 30];
-const ACTIVE_STROKE = [212, 175, 55, 255];
-const INACTIVE_FILL = [100, 100, 100, 20];
-const INACTIVE_STROKE = [100, 100, 100, 255];
+// Colors - use correct tuple types for deck.gl v9
+const ACTIVE_FILL: [number, number, number, number] = [212, 175, 55, 30];
+const ACTIVE_STROKE: [number, number, number, number] = [212, 175, 55, 255];
+const INACTIVE_FILL: [number, number, number, number] = [100, 100, 100, 20];
+const INACTIVE_STROKE: [number, number, number, number] = [100, 100, 100, 255];
 
 export default function GeofenceLayers({ zoom = 8 }: GeofenceLayersProps) {
   const geofences = useGeofenceStore(state => state.geofences);

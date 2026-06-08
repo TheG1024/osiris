@@ -1,25 +1,24 @@
-'use client';
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-type Theme = 'cyberpunk' | 'glass' | 'industrial';
+type ThemeName = 'cyberpunk' | 'glass' | 'industrial';
 
-interface ThemeStore {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+interface ThemeState {
+  theme: ThemeName;
+  setTheme: (theme: ThemeName) => void;
+  toggleTheme: () => void;
 }
 
-export const useThemeStore = create<ThemeStore>()(
+export const useThemeStore = create<ThemeState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       theme: 'cyberpunk',
-      setTheme: (theme) => {
-        // Apply theme to document
-        if (typeof document !== 'undefined') {
-          document.documentElement.setAttribute('data-theme', theme);
-        }
-        set({ theme });
+      setTheme: (theme) => set({ theme }),
+      toggleTheme: () => {
+        const themes: ThemeName[] = ['cyberpunk', 'glass', 'industrial'];
+        const current = themes.indexOf(get().theme);
+        const next = themes[(current + 1) % themes.length];
+        set({ theme: next });
       },
     }),
     {
@@ -27,18 +26,3 @@ export const useThemeStore = create<ThemeStore>()(
     }
   )
 );
-
-// Apply theme on initial load
-if (typeof window !== 'undefined') {
-  const stored = localStorage.getItem('osiris-theme');
-  if (stored) {
-    try {
-      const { state } = JSON.parse(stored);
-      if (state?.theme) {
-        document.documentElement.setAttribute('data-theme', state.theme);
-      }
-    } catch (e) {
-      // Ignore parse errors
-    }
-  }
-}
