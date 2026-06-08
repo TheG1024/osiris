@@ -1,10 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Use Turbopack (default in Next 16)
-  turbopack: {
-    // Fix lockfile detection - prevent Next.js from looking at parent directories
-    root: __dirname,
-  },
+  // NOTE: Removed __dirname - it's not valid in ES modules and not needed for turbopack
   
   // Transpile packages
   transpilePackages: ['maplibre-gl', 'react-map-gl'],
