@@ -4,6 +4,36 @@ import { generateToken } from '../middleware/auth';
 
 const router = Router();
 
+// ============ API CACHING (Step 2) ============
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  ttl: number;
+}
+
+class ApiCache {
+  private cache = new Map<string, CacheEntry<unknown>>();
+
+  get<T>(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.data as T;
+  }
+
+  set<T>(key: string, data: T, ttl: number): void {
+    this.cache.set(key, { data, timestamp: Date.now(), ttl });
+  }
+}
+
+const apiCache = new ApiCache();
+
 // Health check
 router.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'healthy', service: 'api-gateway', timestamp: Date.now() });
@@ -134,75 +164,127 @@ function generateEarthquakes(count: number = 8) {
   return earthquakes;
 }
 
-// Flights
+// Flights (30s TTL)
 router.get('/flights', (req: Request, res: Response) => {
   const count = parseInt(req.query.count as string) || 50;
+  const cacheKey = `flights:${count}`;
+
+  const cached = apiCache.get<{ flights: unknown[]; count: number; timestamp: number }>(cacheKey);
+  if (cached) {
+    return res.json(cached);
+  }
+
   const flights = generateFlights(count);
-  
-  res.json({
+  const response = {
     flights,
     count: flights.length,
     timestamp: Date.now()
-  });
+  };
+
+  apiCache.set(cacheKey, response, 30000); // 30s TTL
+  res.json(response);
 });
 
-// Ships
+// Ships (30s TTL)
 router.get('/ships', (req: Request, res: Response) => {
   const count = parseInt(req.query.count as string) || 30;
+  const cacheKey = `ships:${count}`;
+
+  const cached = apiCache.get<{ ships: unknown[]; count: number; timestamp: number }>(cacheKey);
+  if (cached) {
+    return res.json(cached);
+  }
+
   const ships = generateShips(count);
-  
-  res.json({
+  const response = {
     ships,
     count: ships.length,
     timestamp: Date.now()
-  });
+  };
+
+  apiCache.set(cacheKey, response, 30000); // 30s TTL
+  res.json(response);
 });
 
-// Satellites
+// Satellites (60s TTL)
 router.get('/satellites', (req: Request, res: Response) => {
   const count = parseInt(req.query.count as string) || 20;
+  const cacheKey = `satellites:${count}`;
+
+  const cached = apiCache.get<{ satellites: unknown[]; count: number; timestamp: number }>(cacheKey);
+  if (cached) {
+    return res.json(cached);
+  }
+
   const satellites = generateSatellites(count);
-  
-  res.json({
+  const response = {
     satellites,
     count: satellites.length,
     timestamp: Date.now()
-  });
+  };
+
+  apiCache.set(cacheKey, response, 60000); // 60s TTL
+  res.json(response);
 });
 
-// Fires
+// Fires (120s TTL)
 router.get('/fires', (req: Request, res: Response) => {
   const count = parseInt(req.query.count as string) || 15;
+  const cacheKey = `fires:${count}`;
+
+  const cached = apiCache.get<{ fires: unknown[]; count: number; timestamp: number }>(cacheKey);
+  if (cached) {
+    return res.json(cached);
+  }
+
   const fires = generateFires(count);
-  
-  res.json({
+  const response = {
     fires,
     count: fires.length,
     timestamp: Date.now()
-  });
+  };
+
+  apiCache.set(cacheKey, response, 120000); // 120s TTL
+  res.json(response);
 });
 
-// Earthquakes
+// Earthquakes (120s TTL)
 router.get('/earthquakes', (req: Request, res: Response) => {
   const count = parseInt(req.query.count as string) || 8;
+  const cacheKey = `earthquakes:${count}`;
+
+  const cached = apiCache.get<{ earthquakes: unknown[]; count: number; timestamp: number }>(cacheKey);
+  if (cached) {
+    return res.json(cached);
+  }
+
   const earthquakes = generateEarthquakes(count);
-  
-  res.json({
+  const response = {
     earthquakes,
     count: earthquakes.length,
     timestamp: Date.now()
-  });
+  };
+
+  apiCache.set(cacheKey, response, 120000); // 120s TTL
+  res.json(response);
 });
 
-// Overview - all data combined
+// Overview - all data combined (30s TTL)
 router.get('/overview', (req: Request, res: Response) => {
+  const cacheKey = 'overview';
+
+  const cached = apiCache.get<{ flights: unknown[]; ships: unknown[]; satellites: unknown[]; fires: unknown[]; earthquakes: unknown[]; stats: Record<string, number>; timestamp: number }>(cacheKey);
+  if (cached) {
+    return res.json(cached);
+  }
+
   const flights = generateFlights(50);
   const ships = generateShips(30);
   const satellites = generateSatellites(20);
   const fires = generateFires(15);
   const earthquakes = generateEarthquakes(8);
-  
-  res.json({
+
+  const response = {
     flights,
     ships,
     satellites,
@@ -216,7 +298,10 @@ router.get('/overview', (req: Request, res: Response) => {
       recentEarthquakes: earthquakes.length
     },
     timestamp: Date.now()
-  });
+  };
+
+  apiCache.set(cacheKey, response, 30000); // 30s TTL
+  res.json(response);
 });
 
 // Entities
