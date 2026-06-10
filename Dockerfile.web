@@ -1,0 +1,40 @@
+# Dockerfile for Osiris Redux Web Frontend
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+COPY packages/shared/package*.json ./packages/shared/
+COPY apps/web/package*.json ./apps/web/
+
+RUN npm install --workspace=@osiris/shared --workspace=@osiris/web
+
+# Copy source
+COPY tsconfig.base.json ./
+COPY packages/ ./packages/
+COPY apps/web/ ./apps/web/
+
+# Build
+RUN npm run build --workspace=@osiris/web
+
+# Production stage
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV production
+
+# Copy built files
+COPY --from=builder /app/apps/web/.next ./.next
+COPY --from=builder /app/apps/web/public ./public
+COPY --from=builder /app/apps/web/package.json ./package.json
+
+# Install only production dependencies
+RUN npm install --omit=dev
+
+# Expose port
+EXPOSE 3000
+
+# Start
+CMD ["npm", "start"]
