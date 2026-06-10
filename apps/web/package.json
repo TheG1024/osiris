@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -34,6 +34,13 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.5.0",
+    "nanoid": "^5.1.11",
+    "non-secure": "^0.0.1-security",
+    "picocolors": "^1.1.1",
+    "postcss": "^8.5.15",
+    "source-map-js": "^1.2.1",
+    "tailwindcss": "^4.3.0",
     "typescript": "^5.7.0"
   }
 }

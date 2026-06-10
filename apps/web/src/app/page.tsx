@@ -82,10 +82,12 @@ export default function Home() {
   const [mouseCoords, setMouseCoords] = useState({ lat: 0, lng: 0 });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { theme } = useThemeStore();
 
   // Initialize theme on mount
   useEffect(() => {
+    setMounted(true);
     if (typeof document !== 'undefined' && theme) {
       document.documentElement.setAttribute('data-theme', theme);
     }
@@ -94,9 +96,10 @@ export default function Home() {
 
   // Update clock
   useEffect(() => {
+    if (!mounted) return;
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [mounted]);
 
   // Load initial data
   useEffect(() => {
@@ -280,7 +283,7 @@ export default function Home() {
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-osiris-surface/60 border border-osiris-border/50">
             <Clock size={12} className="text-osiris-text-muted" />
             <span className="font-mono text-[11px] text-osiris-text-dim tracking-wider">
-              {currentTime.toISOString().split('T')[1].split('.')[0]} UTC
+              {mounted ? currentTime.toISOString().split('T')[1].split('.')[0] : '--:--:--'} UTC
             </span>
           </div>
 

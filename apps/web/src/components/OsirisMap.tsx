@@ -5,7 +5,7 @@ import Map, { NavigationControl, FullscreenControl, ScaleControl, GeolocateContr
 import { useEntityStore, type GeoEntity } from '@/stores/entityStore';
 import { motion } from 'framer-motion';
 import { Crosshair, Layers, RotateCcw, Globe, Target, Plane, Ship, Satellite, Zap } from 'lucide-react';
-import 'maplibre-gl/dist/maplibre-gl.css';
+// import 'maplibre-gl/dist/maplibre-gl.css';
 
 // Map styles
 const MAP_STYLES: Record<string, string> = {
