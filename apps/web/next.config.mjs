@@ -29,6 +29,16 @@ const nextConfig = {
     ],
   },
   
+  // Proxy API requests to backend gateway
+  async rewrites() {
+    return [
+      {
+        source: '/api/v1/:path*',
+        destination: `${process.env.API_GATEWAY_URL || 'https://osiris-api-xhfm.onrender.com'}/api/v1/:path*`,
+      },
+    ];
+  },
+
   // Headers for CORS
   async headers() {
     return [
