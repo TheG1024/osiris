@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createConsumer, ConsumerWrapper, createProducer, ProducerWrapper } from './consumer';
 
+// ponytail: integration tests need Redpanda. Set INTEGRATION=1 to run.
+// CI doesn't have Redpanda, so default is skip.
+const itIntegration = process.env.INTEGRATION === '1' ? it : it.skip;
+
 describe('ConsumerWrapper', () => {
   let consumer: ConsumerWrapper;
 
@@ -21,11 +25,11 @@ describe('ConsumerWrapper', () => {
     expect(consumer).toBeInstanceOf(ConsumerWrapper);
   });
 
-  it('should connect to Kafka and subscribe to topics', async () => {
+  itIntegration('should connect to Kafka and subscribe to topics', async () => {
     await consumer.connect();
   });
 
-  it('should disconnect from Kafka', async () => {
+  itIntegration('should disconnect from Kafka', async () => {
     await consumer.connect();
     await consumer.disconnect();
   });
@@ -48,11 +52,11 @@ describe('ProducerWrapper', () => {
     expect(producer).toBeInstanceOf(ProducerWrapper);
   });
 
-  it('should connect to Kafka', async () => {
+  itIntegration('should connect to Kafka', async () => {
     await producer.connect();
   });
 
-  it('should produce a message', async () => {
+  itIntegration('should produce a message', async () => {
     await producer.connect();
     await producer.produce({
       topic: 'test-topic',

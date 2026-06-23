@@ -54,6 +54,21 @@ cd apps/web && npm run dev
 
 Visit http://localhost:3000 for the 3D globe interface.
 
+### Prerequisites
+
+- Node.js 20+ (see `.nvmrc`)
+- npm 10+
+- Docker + Docker Compose v2
+- Python 3.12+ (AI engine only)
+
+### First-time setup
+
+```bash
+nvm use            # or: nvm install
+npm install
+(cd infra && docker-compose up -d)
+```
+
 ## Deployment
 
 ### Render (One-Click)
@@ -74,14 +89,29 @@ docker-compose -f docker-compose.render.yml up -d
 ## Testing
 
 ```bash
-# TypeScript packages
+# TypeScript packages (unit + integration; integration tests gated by INTEGRATION=1)
 npm test
 
 # Python AI engine
 cd services/ai-engine && pytest
+
+# End-to-end (Playwright; web must be running or E2E_BASE_URL set)
+cd apps/web && npm run e2e
 ```
 
 **Test Coverage:** 37 passing tests (17 shared, 6 streaming, 14 database, 7 AI)
+
+## Load and Chaos Testing
+
+```bash
+# Load: hit a public endpoint with N concurrent workers. Exits non-zero if >10% fail.
+TARGET=https://osiris-api-xhfm.onrender.com/api/v1/health \
+  CONCURRENCY=50 REQUESTS=1000 \
+  node scripts/load-test.mjs
+
+# Chaos: stop a service, wait, restart, verify recovery. Needs docker-compose up.
+CHAOS_SERVICE=redpanda DOWNSEC=10 ./scripts/chaos-test.sh
+```
 
 ## Project Status
 
