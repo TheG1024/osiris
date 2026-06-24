@@ -1,45 +1,43 @@
 import { fetchAircraftData } from './client/opensky-client';
-import { createAircraftPublisher } from './publisher';
-import { TOPICS } from '@osiris/shared';
+import { createDbWriter } from './db-writer';
 
-const POLL_INTERVAL_MS = 10000;
-const BROKERS = process.env.REDPANDA_BROKERS || 'localhost:9092';
+const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '10000', 10);
+const BOUNDING_BOX = process.env.BBOX
+  ? (process.env.BBOX.split(',').map(Number) as [number, number, number, number])
+  : undefined;
+// OpenSky /states/all defaults to global; we can scope to a bbox via lamin/lomin/lamax/lomax.
 
 async function main() {
-  console.log('Starting aircraft ingestion service...');
-  
-  const publisher = createAircraftPublisher({
-    brokers: BROKERS,
-    topic: TOPICS.INGEST_AIRCRAFT
-  });
+  if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL is required');
+    process.exit(1);
+  }
+  console.log(`Starting aircraft ingestion (poll=${POLL_INTERVAL_MS}ms bbox=${BOUNDING_BOX || 'global'})`);
 
+  const writer = createDbWriter();
   let shuttingDown = false;
+  let consecutiveErrors = 0;
 
-  process.on('SIGTERM', () => {
-    console.log('Received SIGTERM, shutting down gracefully...');
-    shuttingDown = true;
-  });
-
-  process.on('SIGINT', () => {
-    console.log('Received SIGINT, shutting down gracefully...');
-    shuttingDown = true;
-  });
+  process.on('SIGTERM', () => { console.log('SIGTERM'); shuttingDown = true; });
+  process.on('SIGINT', () => { console.log('SIGINT'); shuttingDown = true; });
 
   while (!shuttingDown) {
     try {
-      const entities = await fetchAircraftData();
+      const entities = await fetchAircraftData(...(BOUNDING_BOX || []));
       if (entities.length > 0) {
-        await publisher.publish(entities);
-        console.log(`Published ${entities.length} aircraft`);
+        const { upserted, positions } = await writer.write(entities);
+        console.log(`[aircraft] upserted=${upserted} positions=${positions}`);
+      } else {
+        console.log('[aircraft] no states returned');
       }
-      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+      consecutiveErrors = 0;
     } catch (error) {
-      console.error('Error fetching aircraft data:', error);
-      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+      consecutiveErrors++;
+      console.error(`[aircraft] tick failed (#${consecutiveErrors}):`, (error as Error).message);
     }
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
   }
-
-  await publisher.disconnect();
+  console.log('aircraft ingestion stopped');
 }
 
-main().catch(console.error);
+main().catch((e) => { console.error('fatal:', e); process.exit(1); });

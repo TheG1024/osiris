@@ -1,10 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { authenticate, requirePermission, type AuthRequest } from '../middleware/auth';
 import { generateToken } from '../middleware/auth';
+import { getEntitiesByType, getEntitiesInRadius, type Entity } from '@osiris/db';
 
 const router = Router();
 
-// ============ API CACHING (Step 2) ============
+// ============ API CACHING ============
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
@@ -13,20 +14,16 @@ interface CacheEntry<T> {
 
 class ApiCache {
   private cache = new Map<string, CacheEntry<unknown>>();
-
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
-
     const now = Date.now();
     if (now - entry.timestamp > entry.ttl) {
       this.cache.delete(key);
       return null;
     }
-
     return entry.data as T;
   }
-
   set<T>(key: string, data: T, ttl: number): void {
     this.cache.set(key, { data, timestamp: Date.now(), ttl });
   }
@@ -34,100 +31,117 @@ class ApiCache {
 
 const apiCache = new ApiCache();
 
+// ponytail: shapes the frontend already consumes. Kept stable; if the field
+// set changes, update apps/web/src/lib/api-client.ts in the same commit.
+function entityToFlight(e: Entity) {
+  const m = (e.metadata || {}) as Record<string, unknown>;
+  return {
+    id: e.sourceId,
+    callsign: m.callsign || e.name,
+    lat: e.latitude,
+    lon: e.longitude,
+    altitude: e.altitude,
+    speed: m.velocity as number | undefined,
+    heading: m.heading as number | undefined,
+    onGround: m.onGround as boolean | undefined,
+    country: m.country as string | undefined,
+    lastUpdate: new Date(e.lastSeenAt).getTime(),
+  };
+}
+
+function entityToSatellite(e: Entity) {
+  const m = (e.metadata || {}) as Record<string, unknown>;
+  return {
+    id: e.sourceId,
+    name: e.name,
+    lat: e.latitude,
+    lon: e.longitude,
+    altitude: e.altitude, // km
+    velocity: m.velocity as number | undefined,
+    period: m.period as number | undefined,
+    lastUpdate: new Date(e.lastSeenAt).getTime(),
+  };
+}
+
+function entityToWeather(e: Entity) {
+  const m = (e.metadata || {}) as Record<string, unknown>;
+  return {
+    id: e.sourceId,
+    stationName: m.stationName,
+    lat: e.latitude,
+    lon: e.longitude,
+    tempC: m.tempC,
+    dewpointC: m.dewpointC,
+    windDirDegrees: m.windDirDegrees,
+    windSpeedKt: m.windSpeedKt,
+    altimInHg: m.altimInHg,
+    cover: m.cover,
+    visibility: m.visibility,
+    observedAt: m.observedAt,
+    lastUpdate: new Date(e.lastSeenAt).getTime(),
+  };
+}
+
+const DB_ENABLED = !!process.env.DATABASE_URL;
+
+async function fetchAircraft(limit: number): Promise<Entity[]> {
+  if (!DB_ENABLED) return [];
+  try {
+    return await getEntitiesByType('aircraft', { limit });
+  } catch (err) {
+    console.error('[api] aircraft query failed:', (err as Error).message);
+    return [];
+  }
+}
+
+async function fetchSatellites(limit: number): Promise<Entity[]> {
+  if (!DB_ENABLED) return [];
+  try {
+    return await getEntitiesByType('satellite', { limit });
+  } catch (err) {
+    console.error('[api] satellite query failed:', (err as Error).message);
+    return [];
+  }
+}
+
+async function fetchWeather(limit: number): Promise<Entity[]> {
+  if (!DB_ENABLED) return [];
+  try {
+    return await getEntitiesByType('weather', { limit });
+  } catch (err) {
+    console.error('[api] weather query failed:', (err as Error).message);
+    return [];
+  }
+}
+
 // Health check
 router.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'healthy', service: 'api-gateway', timestamp: Date.now() });
+  res.json({
+    status: 'healthy',
+    service: 'api-gateway',
+    db: DB_ENABLED ? 'configured' : 'mock',
+    timestamp: Date.now(),
+  });
 });
 
-// Authentication
+// Auth (unchanged)
 router.post('/auth/login', (req: Request, res: Response) => {
   const { username, password } = req.body;
-  
   const userRoles: Record<string, string> = {
     'admin': 'administrator',
     'op': 'operator',
     'analyst': 'analyst',
-    'guest': 'public'
+    'guest': 'public',
   };
-  
   const role = userRoles[username] || 'public';
   const token = generateToken(username, role as any);
-  
   res.json({ token, role, expiresIn: 86400 });
 });
 
-// Generate mock flight data
-function generateFlights(count: number = 50) {
-  const airlines = ['UA', 'AA', 'DL', 'BA', 'LH', 'AF', 'EK', 'QF', 'SQ', 'JL'];
-  const flights = [];
-  
-  for (let i = 0; i < count; i++) {
-    const lat = (Math.random() - 0.5) * 140;
-    const lon = (Math.random() - 0.5) * 340;
-    flights.push({
-      id: `FL${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-      callsign: airlines[Math.floor(Math.random() * airlines.length)] + Math.floor(Math.random() * 9000),
-      lat,
-      lon,
-      altitude: Math.floor(Math.random() * 40000) + 25000,
-      speed: Math.floor(Math.random() * 300) + 400,
-      heading: Math.floor(Math.random() * 360),
-      origin: ['JFK', 'LAX', 'LHR', 'FRA', 'HND', 'SYD'][Math.floor(Math.random() * 6)],
-      destination: ['JFK', 'LAX', 'LHR', 'FRA', 'HND', 'SYD'][Math.floor(Math.random() * 6)],
-      lastUpdate: Date.now() - Math.floor(Math.random() * 60000)
-    });
-  }
-  return flights;
-}
-
-// Generate mock ship data
-function generateShips(count: number = 30) {
-  const ships = [];
-  const types = ['cargo', 'tanker', 'container', 'bulk'];
-  
-  for (let i = 0; i < count; i++) {
-    const lat = (Math.random() - 0.5) * 120;
-    const lon = (Math.random() - 0.5) * 280;
-    ships.push({
-      id: `SHIP${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
-      name: `MV ${['Pacific', 'Atlantic', 'Arctic', 'Indian', 'Southern'][Math.floor(Math.random() * 5)]} ${['Star', 'Pride', 'Glory', 'Fortune', 'Voyager'][Math.floor(Math.random() * 5)]}`,
-      type: types[Math.floor(Math.random() * types.length)],
-      lat,
-      lon,
-      speed: Math.floor(Math.random() * 20) + 5,
-      heading: Math.floor(Math.random() * 360),
-      destination: ['Shanghai', 'Rotterdam', 'Singapore', 'LA', 'Dubai'][Math.floor(Math.random() * 5)],
-      lastUpdate: Date.now() - Math.floor(Math.random() * 300000)
-    });
-  }
-  return ships;
-}
-
-// Generate mock satellite data
-function generateSatellites(count: number = 20) {
-  const sats = [];
-  const names = ['ISS', 'HUBBLE', 'LANDSAT-9', 'SENTINEL-2', 'NOAA-20', 'AQUA', 'TERRA', 'GPM-CORE', 'SMAP', 'OCO-3'];
-  
-  for (let i = 0; i < count; i++) {
-    sats.push({
-      id: `SAT${i.toString().padStart(4, '0')}`,
-      name: names[i % names.length],
-      lat: (Math.random() - 0.5) * 180,
-      lon: (Math.random() - 0.5) * 360,
-      altitude: Math.floor(Math.random() * 600) + 400,
-      velocity: Math.floor(Math.random() * 8) + 7,
-      period: Math.floor(Math.random() * 30) + 90,
-      lastUpdate: Date.now() - Math.floor(Math.random() * 30000)
-    });
-  }
-  return sats;
-}
-
-// Generate mock fire data
-function generateFires(count: number = 15) {
+// ---- Mock generators for sources we haven't wired (fires, earthquakes, ships) ----
+function generateFires(count: number) {
   const fires = [];
   const regions = ['Mediterranean', 'California', 'Australia', 'Amazon', 'Siberia', 'West Africa', 'Indonesia'];
-  
   for (let i = 0; i < count; i++) {
     fires.push({
       id: `FIRE${i.toString().padStart(4, '0')}`,
@@ -138,17 +152,15 @@ function generateFires(count: number = 15) {
       confidence: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
       frp: Math.floor(Math.random() * 100) + 10,
       acqDate: new Date().toISOString().split('T')[0],
-      acqTime: `${Math.floor(Math.random() * 24).toString().padStart(2, '0')}${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`
+      acqTime: `${Math.floor(Math.random() * 24).toString().padStart(2, '0')}${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
     });
   }
   return fires;
 }
 
-// Generate mock earthquake data
-function generateEarthquakes(count: number = 8) {
+function generateEarthquakes(count: number) {
   const earthquakes = [];
   const locations = ['Pacific Ring', 'Alpine Fault', 'Himalayan Region', 'Mid-Atlantic Ridge', 'Caribbean', 'Philippine Sea'];
-  
   for (let i = 0; i < count; i++) {
     earthquakes.push({
       id: `EQ${Date.now()}-${i}`,
@@ -158,209 +170,249 @@ function generateEarthquakes(count: number = 8) {
       depth: Math.floor(Math.random() * 300) + 10,
       location: locations[Math.floor(Math.random() * locations.length)],
       tsunami: Math.random() > 0.8,
-      timestamp: Date.now() - Math.floor(Math.random() * 86400000)
+      timestamp: Date.now() - Math.floor(Math.random() * 86400000),
     });
   }
   return earthquakes;
 }
 
-// Flights (30s TTL)
-router.get('/flights', (req: Request, res: Response) => {
-  const count = parseInt(req.query.count as string) || 50;
+function generateShips(count: number) {
+  const ships = [];
+  const types = ['cargo', 'tanker', 'container', 'bulk'];
+  for (let i = 0; i < count; i++) {
+    const lat = (Math.random() - 0.5) * 120;
+    const lon = (Math.random() - 0.5) * 280;
+    ships.push({
+      id: `SHIP${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+      name: `MV ${['Pacific', 'Atlantic', 'Arctic', 'Indian', 'Southern'][Math.floor(Math.random() * 5)]} ${['Star', 'Pride', 'Glory', 'Fortune', 'Voyager'][Math.floor(Math.random() * 5)]}`,
+      type: types[Math.floor(Math.random() * types.length)],
+      lat, lon,
+      speed: Math.floor(Math.random() * 20) + 5,
+      heading: Math.floor(Math.random() * 360),
+      destination: ['Shanghai', 'Rotterdam', 'Singapore', 'LA', 'Dubai'][Math.floor(Math.random() * 5)],
+      lastUpdate: Date.now() - Math.floor(Math.random() * 300000),
+    });
+  }
+  return ships;
+}
+
+// ---- Live routes ----
+router.get('/flights', async (req: Request, res: Response) => {
+  const count = parseInt(req.query.count as string) || 500;
   const cacheKey = `flights:${count}`;
-
   const cached = apiCache.get<{ flights: unknown[]; count: number; timestamp: number }>(cacheKey);
-  if (cached) {
-    return res.json(cached);
-  }
+  if (cached) return res.json(cached);
 
-  const flights = generateFlights(count);
-  const response = {
-    flights,
-    count: flights.length,
-    timestamp: Date.now()
-  };
-
-  apiCache.set(cacheKey, response, 30000); // 30s TTL
+  const rows = await fetchAircraft(count);
+  const flights = rows.map(entityToFlight);
+  const response = { flights, count: flights.length, source: 'opensky', timestamp: Date.now() };
+  apiCache.set(cacheKey, response, 15000);
   res.json(response);
 });
 
-// Ships (30s TTL)
-router.get('/ships', (req: Request, res: Response) => {
-  const count = parseInt(req.query.count as string) || 30;
-  const cacheKey = `ships:${count}`;
-
-  const cached = apiCache.get<{ ships: unknown[]; count: number; timestamp: number }>(cacheKey);
-  if (cached) {
-    return res.json(cached);
-  }
-
-  const ships = generateShips(count);
-  const response = {
-    ships,
-    count: ships.length,
-    timestamp: Date.now()
-  };
-
-  apiCache.set(cacheKey, response, 30000); // 30s TTL
-  res.json(response);
-});
-
-// Satellites (60s TTL)
-router.get('/satellites', (req: Request, res: Response) => {
-  const count = parseInt(req.query.count as string) || 20;
+router.get('/satellites', async (req: Request, res: Response) => {
+  const count = parseInt(req.query.count as string) || 200;
   const cacheKey = `satellites:${count}`;
-
   const cached = apiCache.get<{ satellites: unknown[]; count: number; timestamp: number }>(cacheKey);
-  if (cached) {
-    return res.json(cached);
-  }
+  if (cached) return res.json(cached);
 
-  const satellites = generateSatellites(count);
-  const response = {
-    satellites,
-    count: satellites.length,
-    timestamp: Date.now()
-  };
-
-  apiCache.set(cacheKey, response, 60000); // 60s TTL
+  const rows = await fetchSatellites(count);
+  const satellites = rows.map(entityToSatellite);
+  const response = { satellites, count: satellites.length, source: 'celestrak', timestamp: Date.now() };
+  apiCache.set(cacheKey, response, 30000);
   res.json(response);
 });
 
-// Fires (120s TTL)
+router.get('/weather', async (req: Request, res: Response) => {
+  const count = parseInt(req.query.count as string) || 200;
+  const cacheKey = `weather:${count}`;
+  const cached = apiCache.get<{ stations: unknown[]; count: number; timestamp: number }>(cacheKey);
+  if (cached) return res.json(cached);
+
+  const rows = await fetchWeather(count);
+  const stations = rows.map(entityToWeather);
+  const response = { stations, count: stations.length, source: 'noaa', timestamp: Date.now() };
+  apiCache.set(cacheKey, response, 60000);
+  res.json(response);
+});
+
 router.get('/fires', (req: Request, res: Response) => {
   const count = parseInt(req.query.count as string) || 15;
   const cacheKey = `fires:${count}`;
-
   const cached = apiCache.get<{ fires: unknown[]; count: number; timestamp: number }>(cacheKey);
-  if (cached) {
-    return res.json(cached);
-  }
+  if (cached) return res.json(cached);
 
   const fires = generateFires(count);
-  const response = {
-    fires,
-    count: fires.length,
-    timestamp: Date.now()
-  };
-
-  apiCache.set(cacheKey, response, 120000); // 120s TTL
+  const response = { fires, count: fires.length, source: 'mock', timestamp: Date.now() };
+  apiCache.set(cacheKey, response, 120000);
   res.json(response);
 });
 
-// Earthquakes (120s TTL)
 router.get('/earthquakes', (req: Request, res: Response) => {
   const count = parseInt(req.query.count as string) || 8;
   const cacheKey = `earthquakes:${count}`;
-
   const cached = apiCache.get<{ earthquakes: unknown[]; count: number; timestamp: number }>(cacheKey);
-  if (cached) {
-    return res.json(cached);
-  }
+  if (cached) return res.json(cached);
 
   const earthquakes = generateEarthquakes(count);
-  const response = {
-    earthquakes,
-    count: earthquakes.length,
-    timestamp: Date.now()
-  };
-
-  apiCache.set(cacheKey, response, 120000); // 120s TTL
+  const response = { earthquakes, count: earthquakes.length, source: 'mock', timestamp: Date.now() };
+  apiCache.set(cacheKey, response, 120000);
   res.json(response);
 });
 
-// Overview - all data combined (30s TTL)
-router.get('/overview', (req: Request, res: Response) => {
+router.get('/ships', (req: Request, res: Response) => {
+  const count = parseInt(req.query.count as string) || 30;
+  const cacheKey = `ships:${count}`;
+  const cached = apiCache.get<{ ships: unknown[]; count: number; timestamp: number }>(cacheKey);
+  if (cached) return res.json(cached);
+
+  const ships = generateShips(count);
+  const response = { ships, count: ships.length, source: 'mock (no AISStream key)', timestamp: Date.now() };
+  apiCache.set(cacheKey, response, 30000);
+  res.json(response);
+});
+
+router.get('/overview', async (req: Request, res: Response) => {
   const cacheKey = 'overview';
+  const cached = apiCache.get<Record<string, unknown>>(cacheKey);
+  if (cached) return res.json(cached);
 
-  const cached = apiCache.get<{ flights: unknown[]; ships: unknown[]; satellites: unknown[]; fires: unknown[]; earthquakes: unknown[]; stats: Record<string, number>; timestamp: number }>(cacheKey);
-  if (cached) {
-    return res.json(cached);
-  }
+  const [aircraft, satellites, weather] = await Promise.all([
+    fetchAircraft(100),
+    fetchSatellites(50),
+    fetchWeather(50),
+  ]);
 
-  const flights = generateFlights(50);
-  const ships = generateShips(30);
-  const satellites = generateSatellites(20);
+  const flights = aircraft.map(entityToFlight);
+  const sats = satellites.map(entityToSatellite);
+  const wx = weather.map(entityToWeather);
   const fires = generateFires(15);
   const earthquakes = generateEarthquakes(8);
 
   const response = {
-    flights,
-    ships,
-    satellites,
-    fires,
-    earthquakes,
+    flights, satellites, weather: wx, fires, earthquakes,
     stats: {
       totalFlights: flights.length,
-      totalShips: ships.length,
-      totalSatellites: satellites.length,
+      totalSatellites: sats.length,
+      totalWeather: wx.length,
       activeFires: fires.length,
-      recentEarthquakes: earthquakes.length
+      recentEarthquakes: earthquakes.length,
     },
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
-
-  apiCache.set(cacheKey, response, 30000); // 30s TTL
+  apiCache.set(cacheKey, response, 30000);
   res.json(response);
 });
 
-// Entities
+// ---- Authenticated entity routes ----
 router.get('/entities', authenticate, async (req: AuthRequest, res: Response) => {
-  res.json({
-    entities: [],
-    count: 0,
-    timestamp: Date.now()
-  });
+  if (!DB_ENABLED) return res.json({ entities: [], count: 0, source: 'mock', timestamp: Date.now() });
+  try {
+    const rows = await getEntitiesByType(req.query.type as string || 'aircraft', { limit: 500 });
+    const entities = rows.map((e) => ({
+      id: e.sourceId,
+      type: e.entityType,
+      name: e.name,
+      lat: e.latitude,
+      lon: e.longitude,
+      altitude: e.altitude,
+      status: e.status,
+      metadata: e.metadata,
+      lastSeenAt: e.lastSeenAt,
+    }));
+    res.json({ entities, count: entities.length, source: 'db', timestamp: Date.now() });
+  } catch (err) {
+    console.error('[api] /entities failed:', (err as Error).message);
+    res.status(500).json({ error: 'entities query failed' });
+  }
 });
 
 router.get('/entities/:id', authenticate, requirePermission('read:entities'), async (req: AuthRequest, res: Response) => {
-  res.json({ id: req.params.id, status: 'tracked' });
+  if (!DB_ENABLED) return res.json({ id: req.params.id, status: 'tracked', source: 'mock' });
+  // Look up by source_id; we don't have a direct index for that, so do a small type scan.
+  // ponytail: add a UNIQUE index on (entity_type, source_id) and a direct lookup
+  // when the entity set is large. Today we just scan a 500-row window.
+  try {
+    const { getPool } = await import('@osiris/db');
+    const pool = getPool();
+    const r = await pool.query(
+      `SELECT id, entity_type, source_id, name, latitude, longitude, altitude, status, metadata, last_seen_at
+       FROM entities WHERE source_id = $1 LIMIT 1`,
+      [req.params.id]
+    );
+    if (!r.rows[0]) return res.status(404).json({ error: 'not found' });
+    const row = r.rows[0];
+    res.json({ ...row, source: 'db' });
+  } catch (err) {
+    console.error('[api] /entities/:id failed:', (err as Error).message);
+    res.status(500).json({ error: 'entity lookup failed' });
+  }
 });
 
-// Proximity query
 router.get('/query/proximity', authenticate, requirePermission('query:proximity' as any), async (req: AuthRequest, res: Response) => {
-  const { lat, lon, radius_km } = req.query;
-  
-  res.json({
-    center: { lat: Number(lat), lon: Number(lon) },
-    radius_km: Number(radius_km),
-    entities: [],
-    count: 0
-  });
+  const lat = parseFloat(req.query.lat as string);
+  const lon = parseFloat(req.query.lon as string);
+  const radius_km = parseFloat(req.query.radius_km as string);
+  if (!DB_ENABLED) {
+    return res.json({ center: { lat, lon }, radius_km, entities: [], count: 0, source: 'mock' });
+  }
+  try {
+    const rows = await getEntitiesInRadius(lat, lon, radius_km);
+    res.json({
+      center: { lat, lon },
+      radius_km,
+      entities: rows.map((e) => ({
+        id: e.sourceId, type: e.entityType, name: e.name,
+        lat: e.latitude, lon: e.longitude, altitude: e.altitude,
+      })),
+      count: rows.length,
+      source: 'db',
+    });
+  } catch (err) {
+    console.error('[api] /query/proximity failed:', (err as Error).message);
+    res.status(500).json({ error: 'proximity query failed' });
+  }
 });
 
-// Stats
-router.get('/stats', authenticate, requirePermission('read:stats'), async (req: AuthRequest, res: Response) => {
-  const flights = generateFlights(50);
-  const ships = generateShips(30);
-  const satellites = generateSatellites(20);
-  
-  res.json({
-    total: flights.length + ships.length + satellites.length,
-    byType: { aircraft: flights.length, satellite: satellites.length, ship: ships.length, weather: 0 },
-    timestamp: Date.now()
-  });
+router.get('/stats', authenticate, requirePermission('read:stats'), async (_req: AuthRequest, res: Response) => {
+  if (!DB_ENABLED) {
+    return res.json({ total: 0, byType: {}, source: 'mock', timestamp: Date.now() });
+  }
+  try {
+    const { getPool } = await import('@osiris/db');
+    const pool = getPool();
+    const r = await pool.query(
+      `SELECT entity_type, COUNT(*)::int AS count
+       FROM entities
+       WHERE last_seen_at > NOW() - INTERVAL '1 hour'
+       GROUP BY entity_type`
+    );
+    const byType: Record<string, number> = {};
+    let total = 0;
+    for (const row of r.rows) {
+      byType[row.entity_type] = row.count;
+      total += row.count;
+    }
+    res.json({ total, byType, source: 'db', timestamp: Date.now() });
+  } catch (err) {
+    console.error('[api] /stats failed:', (err as Error).message);
+    res.status(500).json({ error: 'stats query failed' });
+  }
 });
 
-// Alerts
-router.get('/alerts', authenticate, requirePermission('read:alerts' as any), async (req: AuthRequest, res: Response) => {
+router.get('/alerts', authenticate, requirePermission('read:alerts' as any), async (_req: AuthRequest, res: Response) => {
   const earthquakes = generateEarthquakes(3);
-  const alerts = earthquakes.map(eq => ({
+  const alerts = earthquakes.map((eq) => ({
     id: eq.id,
     type: 'earthquake',
-    severity: eq.magnitude > 5 ? 'high' : 'medium',
+    severity: Number(eq.magnitude) > 5 ? 'high' : 'medium',
     title: `M ${eq.magnitude} Earthquake`,
     description: `${eq.location} - Depth: ${eq.depth}km`,
     lat: eq.lat,
     lon: eq.lon,
-    timestamp: eq.timestamp
+    timestamp: eq.timestamp,
   }));
-  
-  res.json({
-    alerts,
-    count: alerts.length,
-    timestamp: Date.now()
-  });
+  res.json({ alerts, count: alerts.length, timestamp: Date.now() });
 });
 
 export default router;

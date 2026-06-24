@@ -9,9 +9,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@osiris/db": "file:../../packages/db",
     "@osiris/shared": "file:../../packages/shared",
     "@osiris/streaming": "file:../../packages/streaming",
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "satellite.js": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

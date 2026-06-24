@@ -1,53 +1,40 @@
 import { fetchSatelliteTLEs, tleToEntity } from './client/celestrak-client';
-import { createSatellitePublisher } from './publisher';
-import { TOPICS } from '@osiris/shared';
+import { createDbWriter } from './db-writer';
 
-const REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+const REFRESH_INTERVAL_MS = parseInt(process.env.REFRESH_INTERVAL_MS || String(6 * 60 * 60 * 1000), 10);
+const CATEGORY = process.env.CATEGORY || 'active';
+const SAT_LIMIT = parseInt(process.env.SAT_LIMIT || '500', 10);
 
 async function main() {
-  console.log('Starting satellite ingestion service...');
-  
-  const publisher = createSatellitePublisher({
-    brokers: process.env.REDPANDA_BROKERS || 'localhost:9092',
-    topic: TOPICS.INGEST_SATELLITE
-  });
+  if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL is required');
+    process.exit(1);
+  }
+  console.log(`Starting satellite ingestion (category=${CATEGORY} limit=${SAT_LIMIT} refresh=${REFRESH_INTERVAL_MS}ms)`);
 
+  const writer = createDbWriter();
   let shuttingDown = false;
 
-  process.on('SIGTERM', () => {
-    console.log('Received SIGTERM, shutting down...');
-    shuttingDown = true;
-  });
-
-  process.on('SIGINT', () => {
-    console.log('Received SIGINT, shutting down...');
-    shuttingDown = true;
-  });
+  process.on('SIGTERM', () => { console.log('SIGTERM'); shuttingDown = true; });
+  process.on('SIGINT', () => { console.log('SIGINT'); shuttingDown = true; });
 
   while (!shuttingDown) {
     try {
-      console.log('Fetching satellite TLEs from CelesTrak...');
-      
-      const tles = await fetchSatelliteTLEs('active');
-      console.log(`Fetched ${tles.length} TLEs`);
-
-      const entities = tles.map(tleToEntity);
-      
+      const tles = await fetchSatelliteTLEs(CATEGORY);
+      const tleSlice = tles.slice(0, SAT_LIMIT);
+      const entities = tleSlice.map(tleToEntity);
       if (entities.length > 0) {
-        await publisher.publish(entities);
-        console.log(`Published ${entities.length} satellite entities`);
+        const { upserted, positions } = await writer.write(entities);
+        console.log(`[satellite] upserted=${upserted} positions=${positions}`);
+      } else {
+        console.log('[satellite] no TLEs propagated to entities');
       }
-
-      console.log(`Next refresh in ${REFRESH_INTERVAL_MS / (60 * 60 * 1000)} hours`);
-      await new Promise(resolve => setTimeout(resolve, REFRESH_INTERVAL_MS));
     } catch (error) {
-      console.error('Error in satellite ingestion:', error);
-      await new Promise(resolve => setTimeout(resolve, 60000));
+      console.error('[satellite] tick failed:', (error as Error).message);
     }
+    await new Promise((r) => setTimeout(r, REFRESH_INTERVAL_MS));
   }
-
-  await publisher.disconnect();
-  console.log('Satellite ingestion service stopped.');
+  console.log('satellite ingestion stopped');
 }
 
-main().catch(console.error);
+main().catch((e) => { console.error('fatal:', e); process.exit(1); });

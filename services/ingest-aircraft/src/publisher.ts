@@ -1,3 +1,6 @@
+// ponytail: Redpanda publisher is no longer wired in src/index.ts.
+// Ingestion now writes directly to Postgres via db-writer.ts.
+// Kept here for the future "fan-out to analytics" case.
 import { createProducer } from '@osiris/streaming';
 import { GeoEntity } from '@osiris/shared';
 

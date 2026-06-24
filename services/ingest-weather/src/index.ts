@@ -1,53 +1,40 @@
 import { fetchMETARData, metarToEntity } from './client/noaa-metar-client';
-import { createWeatherPublisher } from './publisher';
-import { TOPICS } from '@osiris/shared';
+import { createDbWriter } from './db-writer';
 
-const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || String(5 * 60 * 1000), 10);
+const HOURS = parseInt(process.env.HOURS || '1', 10);
+const STATION_LIMIT = parseInt(process.env.STATION_LIMIT || '500', 10);
 
 async function main() {
-  console.log('Starting weather ingestion service...');
-  
-  const publisher = createWeatherPublisher({
-    brokers: process.env.REDPANDA_BROKERS || 'localhost:9092',
-    topic: TOPICS.INGEST_WEATHER
-  });
+  if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL is required');
+    process.exit(1);
+  }
+  console.log(`Starting weather ingestion (hours=${HOURS} limit=${STATION_LIMIT} poll=${POLL_INTERVAL_MS}ms)`);
 
+  const writer = createDbWriter();
   let shuttingDown = false;
 
-  process.on('SIGTERM', () => {
-    console.log('Received SIGTERM, shutting down...');
-    shuttingDown = true;
-  });
-
-  process.on('SIGINT', () => {
-    console.log('Received SIGINT, shutting down...');
-    shuttingDown = true;
-  });
+  process.on('SIGTERM', () => { console.log('SIGTERM'); shuttingDown = true; });
+  process.on('SIGINT', () => { console.log('SIGINT'); shuttingDown = true; });
 
   while (!shuttingDown) {
     try {
-      console.log('Fetching METAR data from NOAA...');
-      
-      const metars = await fetchMETARData(undefined, 1);
-      console.log(`Fetched ${metars.length} METAR reports`);
-
-      const entities = metars.map(metarToEntity);
-      
+      const metars = await fetchMETARData(undefined, HOURS);
+      const slice = metars.slice(0, STATION_LIMIT);
+      const entities = slice.map(metarToEntity);
       if (entities.length > 0) {
-        await publisher.publish(entities);
-        console.log(`Published ${entities.length} weather entities`);
+        const { upserted, positions } = await writer.write(entities);
+        console.log(`[weather] upserted=${upserted} positions=${positions}`);
+      } else {
+        console.log('[weather] no METAR returned');
       }
-
-      console.log(`Next poll in ${POLL_INTERVAL_MS / (60 * 1000)} minutes`);
-      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
     } catch (error) {
-      console.error('Error in weather ingestion:', error);
-      await new Promise(resolve => setTimeout(resolve, 60000));
+      console.error('[weather] tick failed:', (error as Error).message);
     }
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
   }
-
-  await publisher.disconnect();
-  console.log('Weather ingestion service stopped.');
+  console.log('weather ingestion stopped');
 }
 
-main().catch(console.error);
+main().catch((e) => { console.error('fatal:', e); process.exit(1); });

@@ -1,0 +1,35 @@
+# Dockerfile.ingest — generic worker for ingest-* services.
+# The SERVICE env var picks which package to run.
+# ponytail: one Dockerfile covers three workers; saves 3x images and image-cache churn.
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install only the deps for the picked service + shared workspaces.
+ARG SERVICE=ingest-aircraft
+COPY package*.json ./
+COPY packages/shared/package*.json ./packages/shared/
+COPY packages/db/package*.json ./packages/db/
+COPY packages/streaming/package*.json ./packages/streaming/
+COPY services/${SERVICE}/package*.json ./services/${SERVICE}/
+
+RUN npm install --omit=dev \
+      --workspace=@osiris/shared \
+      --workspace=@osiris/db \
+      --workspace=@osiris/streaming \
+      --workspace=@osiris/${SERVICE}
+
+# Copy sources (the workspaces' node_modules is hoisted to /app/node_modules)
+COPY tsconfig.base.json ./
+COPY packages/ ./packages/
+COPY services/${SERVICE}/ ./services/${SERVICE}/
+
+# Build the shared/db/streaming packages and the chosen service.
+RUN npm run build --workspace=@osiris/shared && \
+    npm run build --workspace=@osiris/db && \
+    npm run build --workspace=@osiris/streaming && \
+    npm run build --workspace=@osiris/${SERVICE}
+
+ENV NODE_ENV=production SERVICE=${SERVICE}
+CMD ["sh", "-c", "node services/${SERVICE}/dist/index.js"]

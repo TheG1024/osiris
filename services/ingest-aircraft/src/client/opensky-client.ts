@@ -1,30 +1,13 @@
 import axios from 'axios';
 import { GeoEntity } from '@osiris/shared';
 
-export interface OpenSkyStateVector {
-  icao24: string;
-  callsign?: string;
-  country_name?: string;
-  time_position: number;
-  last_contact: number;
-  longitude: number;
-  latitude: number;
-  baro_altitude: number;
-  on_ground: boolean;
-  velocity: number;
-  true_track: number;
-  vertical_rate: number;
-  sensors?: number[];
-  geo_altitude?: number;
-  spir?: number;
-  track_rate?: number;
-  roll?: number;
-  magnetic_heading?: number;
-}
-
-export interface OpenSkyResponse {
-  states: OpenSkyStateVector[];
-}
+// OpenSky /states/all returns state vectors as positional arrays.
+// Index map (per OpenSky docs):
+//   0: icao24, 1: callsign, 2: origin_country, 3: time_position,
+//   4: last_contact, 5: longitude, 6: latitude, 7: baro_altitude,
+//   8: on_ground, 9: velocity, 10: true_track, 11: vertical_rate,
+//   12: sensors, 13: geo_altitude, 14: squawk, 15: spi, 16: position_source
+type StateVector = (string | number | boolean | null | number[])[];
 
 const BASE_URL = 'https://opensky-network.org/api';
 
@@ -34,34 +17,48 @@ export async function fetchAircraftData(
   lamax?: number,
   lomax?: number
 ): Promise<GeoEntity[]> {
-  const params: Record<string, any> = {};
+  const params: Record<string, number> = {};
   if (lamin !== undefined) params.lamin = lamin;
   if (lomin !== undefined) params.lomin = lomin;
   if (lamax !== undefined) params.lamax = lamax;
   if (lomax !== undefined) params.lomax = lomax;
 
-  const response = await axios.get<OpenSkyResponse>(
+  const response = await axios.get<{ time: number; states: StateVector[] | null }>(
     `${BASE_URL}/states/all`,
     { params }
   );
-
-  return response.data.states.map(state => stateVectorToEntity(state));
+  if (!response.data.states) return [];
+  return response.data.states.map(stateVectorToEntity);
 }
 
-function stateVectorToEntity(state: OpenSkyStateVector): GeoEntity {
+function num(v: unknown): number | undefined {
+  return typeof v === 'number' && Number.isFinite(v) ? v : undefined;
+}
+
+function str(v: unknown): string | undefined {
+  return typeof v === 'string' ? v.trim() || undefined : undefined;
+}
+
+function stateVectorToEntity(s: StateVector): GeoEntity | null {
+  const lon = num(s[5]);
+  const lat = num(s[6]);
+  // Drop rows with no position (aircraft on ground with no GPS fix)
+  if (lat === undefined || lon === undefined) return null;
+  const timePos = num(s[3]);
   return {
-    id: state.icao24,
+    id: str(s[0]) || 'unknown',
     type: 'aircraft',
-    lat: state.latitude,
-    lon: state.longitude,
-    timestamp: state.time_position * 1000,
-    altitude: state.geo_altitude ?? state.baro_altitude,
-    velocity: state.velocity * 3.6, // m/s to km/h
-    heading: state.true_track,
+    lat,
+    lon,
+    timestamp: timePos ? timePos * 1000 : Date.now(),
+    altitude: num(s[13]) ?? num(s[7]),
+    velocity: num(s[9]) !== undefined ? num(s[9])! * 3.6 : undefined, // m/s → km/h
+    heading: num(s[10]),
     metadata: {
-      callsign: state.callsign,
-      onGround: state.on_ground,
-      verticalRate: state.vertical_rate
-    }
+      callsign: str(s[1]),
+      country: str(s[2]),
+      onGround: s[8] === true,
+      verticalRate: num(s[11]),
+    },
   };
 }
